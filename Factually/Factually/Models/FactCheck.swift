@@ -2,7 +2,7 @@ import Foundation
 
 /// Represents a fact-checking result
 struct FactCheck: Identifiable, Codable {
-    let id = UUID()
+    let id: UUID
     let originalClaim: String
     let verdict: FactCheckVerdict
     let explanation: String
@@ -10,6 +10,7 @@ struct FactCheck: Identifiable, Codable {
     let timestamp: Date
     
     init(originalClaim: String, verdict: FactCheckVerdict, explanation: String, sources: [String] = []) {
+        self.id = UUID()
         self.originalClaim = originalClaim
         self.verdict = verdict
         self.explanation = explanation

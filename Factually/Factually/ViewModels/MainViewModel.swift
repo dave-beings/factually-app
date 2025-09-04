@@ -34,7 +34,7 @@ class MainViewModel: ObservableObject {
     }
     
     private func requestMicrophonePermission() {
-        audioSession.requestRecordPermission { [weak self] allowed in
+        AVAudioApplication.requestRecordPermission { [weak self] allowed in
             DispatchQueue.main.async {
                 if allowed {
                     print("Microphone permission granted")
@@ -52,7 +52,7 @@ class MainViewModel: ObservableObject {
         print("🎤 Starting audio recording...")
         
         // Check microphone permission
-        guard audioSession.recordPermission == .granted else {
+        guard AVAudioApplication.shared.recordPermission == .granted else {
             print("❌ Microphone permission not granted")
             recordingState = .error("Microphone permission required")
             return

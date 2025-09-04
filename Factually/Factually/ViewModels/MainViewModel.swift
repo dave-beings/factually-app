@@ -315,23 +315,28 @@ class MainViewModel: ObservableObject {
             return
         }
         
-        // Setup audio session if not already active
-        if !audioSession.isOtherAudioPlaying && audioSession.category != .playAndRecord {
-            do {
-                try audioSession.setCategory(.playAndRecord, mode: .default)
-                try audioSession.setActive(true)
-                print("✅ Audio session configured successfully")
-            } catch {
-                print("❌ Failed to set up audio session: \(error)")
-                recordingState = .error("Audio setup failed")
-                return
-            }
+        // Always setup audio session for recording, handling Siri conflicts
+        do {
+            // First, deactivate any existing audio session to handle Siri conflicts
+            try audioSession.setActive(false, options: .notifyOthersOnDeactivation)
+            
+            // Configure for recording
+            try audioSession.setCategory(.playAndRecord, mode: .default, options: [.defaultToSpeaker, .allowBluetooth])
+            try audioSession.setActive(true)
+            
+            print("✅ Audio session configured successfully (handled Siri conflicts)")
+        } catch {
+            print("❌ Failed to set up audio session: \(error)")
+            recordingState = .error("Audio setup failed: \(error.localizedDescription)")
+            cleanupRecording() // Ensure clean state on error
+            return
         }
         
         // Check microphone permission
         guard AVAudioApplication.shared.recordPermission == .granted else {
             print("❌ Microphone permission not granted")
             recordingState = .error("Microphone permission required")
+            cleanupRecording() // Ensure clean state on error
             return
         }
         
@@ -352,7 +357,16 @@ class MainViewModel: ObservableObject {
             // Create and start the audio recorder
             audioRecorder = try AVAudioRecorder(url: audioFilename, settings: settings)
             audioRecorder?.isMeteringEnabled = true
-            audioRecorder?.record()
+            
+            let recordingStarted = audioRecorder?.record() ?? false
+            
+            // Verify recording actually started
+            guard recordingStarted, audioRecorder?.isRecording == true else {
+                print("❌ Recording failed to start - recorder not active")
+                recordingState = .error("Recording failed to start")
+                audioRecorder = nil
+                return
+            }
             
             recordingStartTime = Date()
             recordingState = .recording
@@ -360,25 +374,37 @@ class MainViewModel: ObservableObject {
             // Start audio level monitoring
             startAudioLevelMonitoring()
             
-            print("✅ Recording started successfully")
+            print("✅ Recording started successfully and verified")
             print("📁 Recording to: \(audioFilename.lastPathComponent)")
             
         } catch {
-            print("❌ Failed to start recording: \(error)")
-            recordingState = .error("Recording failed to start")
+            print("❌ Failed to create recorder: \(error)")
+            recordingState = .error("Recording failed to start: \(error.localizedDescription)")
+            audioRecorder = nil
         }
     }
     
     func stopRecording(isTest: Bool = false) {
         print("⏹️ Stopping audio recording... (isTest: \(isTest))")
         
-        guard let recorder = audioRecorder, recorder.isRecording else {
-            print("❌ No active recording to stop")
+        guard let recorder = audioRecorder else {
+            print("❌ No audio recorder available")
+            recordingState = .idle
+            return
+        }
+        
+        // Verify recorder is actually recording
+        guard recorder.isRecording else {
+            print("❌ Recorder is not currently recording")
+            // Clean up and reset state
+            cleanupRecording()
+            recordingState = .idle
             return
         }
         
         // Stop recording and calculate duration
         recorder.stop()
+        print("✅ Audio recorder stopped successfully")
         
         let duration = recordingStartTime != nil ? Date().timeIntervalSince(recordingStartTime!) : 0
         print("⏱️ Recording duration: \(String(format: "%.1f", duration)) seconds")
@@ -408,9 +434,25 @@ class MainViewModel: ObservableObject {
         // Stop audio level monitoring
         stopAudioLevelMonitoring()
         
-        // Clean up
+        // Clean up recording resources and audio session
+        cleanupRecording()
+    }
+    
+    // MARK: - Recording Cleanup
+    
+    private func cleanupRecording() {
+        // Clean up recorder
+        audioRecorder?.stop()
         audioRecorder = nil
         recordingStartTime = nil
+        
+        // Reset audio session to allow other apps to use audio
+        do {
+            try audioSession.setActive(false, options: .notifyOthersOnDeactivation)
+            print("✅ Audio session deactivated successfully")
+        } catch {
+            print("⚠️ Failed to deactivate audio session: \(error)")
+        }
     }
     
     // MARK: - Look Back Functions

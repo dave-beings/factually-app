@@ -184,3 +184,7 @@ Users now have **four ways** to activate fact-checking: manual app launch, Siri 
 - ✅ Moved audio session setup into `startRecording()` for guaranteed initialization
 - ✅ Added smart audio session checks to prevent redundant configuration
 - ✅ Enhanced concurrency safety with proper `@MainActor` handling
+- ✅ **Fixed stop button issue when launched via Siri shortcuts**
+- ✅ **Robust audio session management** with proper Siri conflict handling
+- ✅ **Enhanced error detection** and recording state verification
+- ✅ **Improved cleanup** and audio session reset on all code paths

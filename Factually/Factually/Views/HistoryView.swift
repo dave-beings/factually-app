@@ -71,13 +71,15 @@ struct HistoryView: View {
                     originalClaim: "The Great Wall of China is visible from space.",
                     verdict: .incorrect,
                     explanation: "This is a common myth. The Great Wall of China is not visible from space with the naked eye.",
-                    sources: ["https://www.nasa.gov/vision/earth/lookingatearth/great_wall.html"]
+                    sources: ["https://www.nasa.gov/vision/earth/lookingatearth/great_wall.html"],
+                    sourceURL: "https://www.nasa.gov/vision/earth/lookingatearth/great_wall.html"
                 ),
                 FactCheck(
                     originalClaim: "Honey never spoils.",
                     verdict: .correct,
                     explanation: "Honey has an indefinite shelf life due to its low moisture content and acidic pH.",
-                    sources: ["https://www.smithsonianmag.com/science-nature/the-science-behind-honeys-eternal-shelf-life-1218690/"]
+                    sources: ["https://www.smithsonianmag.com/science-nature/the-science-behind-honeys-eternal-shelf-life-1218690/"],
+                    sourceURL: "https://www.smithsonianmag.com/science-nature/the-science-behind-honeys-eternal-shelf-life-1218690/"
                 )
             ],
             onClearHistory: {

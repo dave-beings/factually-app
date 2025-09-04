@@ -44,6 +44,20 @@ struct FactCheckCard: View {
                     .foregroundColor(.primary)
             }
             
+            // Source URL (if available)
+            if let sourceURL = factCheck.sourceURL, !sourceURL.isEmpty {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Source:")
+                        .font(.caption)
+                        .fontWeight(.medium)
+                        .foregroundColor(.secondary)
+                    
+                    Link("View Source", destination: URL(string: sourceURL) ?? URL(string: "https://example.com")!)
+                        .font(.body)
+                        .foregroundColor(.blue)
+                }
+            }
+            
             // Sources (if available)
             if !factCheck.sources.isEmpty {
                 VStack(alignment: .leading, spacing: 8) {
@@ -90,7 +104,8 @@ struct FactCheckCard: View {
             originalClaim: "The Great Wall of China is visible from space.",
             verdict: .incorrect,
             explanation: "This is a common myth. The Great Wall of China is not visible from space with the naked eye.",
-            sources: ["https://www.nasa.gov/vision/earth/lookingatearth/great_wall.html"]
+            sources: ["https://www.nasa.gov/vision/earth/lookingatearth/great_wall.html"],
+            sourceURL: "https://www.nasa.gov/vision/earth/lookingatearth/great_wall.html"
         )
     )
     .padding()

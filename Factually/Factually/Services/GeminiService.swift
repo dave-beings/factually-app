@@ -39,11 +39,13 @@ class GeminiService {
         You are a concise and accurate fact-checker. Analyze the following claim and provide:
         1. A verdict: "Correct", "Incorrect", "Partially Correct", "Unclear", or "Correction"
         2. A brief, clear explanation (2-3 sentences maximum)
+        3. A reliable source URL that supports your explanation (Wikipedia, government sites, academic sources preferred)
         
         Format your response as JSON:
         {
             "verdict": "[verdict]",
-            "explanation": "[explanation]"
+            "explanation": "[explanation]",
+            "sourceURL": "[reliable URL or null if no good source available]"
         }
         
         Claim to fact-check: "\(claim)"
@@ -87,7 +89,8 @@ class GeminiService {
             
             return FactCheckResponse(
                 verdict: verdict,
-                explanation: jsonResponse.explanation
+                explanation: jsonResponse.explanation,
+                sourceURL: jsonResponse.sourceURL
             )
             
         } catch {
@@ -97,7 +100,8 @@ class GeminiService {
             // Fallback: create a response with the raw text
             return FactCheckResponse(
                 verdict: .unclear,
-                explanation: "Analysis completed, but response format was unexpected. Raw response: \(cleanedText)"
+                explanation: "Analysis completed, but response format was unexpected. Raw response: \(cleanedText)",
+                sourceURL: nil
             )
         }
     }
@@ -109,12 +113,14 @@ class GeminiService {
 struct FactCheckResponse {
     let verdict: FactCheckVerdict
     let explanation: String
+    let sourceURL: String?
 }
 
 /// JSON structure expected from Gemini
 private struct GeminiJSONResponse: Codable {
     let verdict: String
     let explanation: String
+    let sourceURL: String?
 }
 
 // MARK: - Errors

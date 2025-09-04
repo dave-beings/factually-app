@@ -7,14 +7,16 @@ struct FactCheck: Identifiable, Codable {
     let verdict: FactCheckVerdict
     let explanation: String
     let sources: [String]
+    let sourceURL: String?
     let timestamp: Date
     
-    init(originalClaim: String, verdict: FactCheckVerdict, explanation: String, sources: [String] = []) {
+    init(originalClaim: String, verdict: FactCheckVerdict, explanation: String, sources: [String] = [], sourceURL: String? = nil) {
         self.id = UUID()
         self.originalClaim = originalClaim
         self.verdict = verdict
         self.explanation = explanation
         self.sources = sources
+        self.sourceURL = sourceURL
         self.timestamp = Date()
     }
 }

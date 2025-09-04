@@ -315,7 +315,8 @@ class MainViewModel: ObservableObject {
                 originalClaim: transcription,
                 verdict: factCheckResponse.verdict,
                 explanation: factCheckResponse.explanation,
-                sources: [] // TODO: Could be enhanced to include sources from AI
+                sources: [], // TODO: Could be enhanced to include sources from AI
+                sourceURL: factCheckResponse.sourceURL
             )
             
             await MainActor.run {
@@ -332,7 +333,8 @@ class MainViewModel: ObservableObject {
                 originalClaim: transcription,
                 verdict: .unclear,
                 explanation: "Unable to verify this claim at the moment. Please check your internet connection and API key configuration. Error: \(error.localizedDescription)",
-                sources: []
+                sources: [],
+                sourceURL: nil
             )
             
             await MainActor.run {

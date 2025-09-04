@@ -1,6 +1,7 @@
 import Foundation
 import Combine
 import AVFoundation
+import Speech
 
 /// Main view model for the app's core functionality
 @MainActor
@@ -9,15 +10,20 @@ class MainViewModel: ObservableObject {
     @Published var currentRecording: AudioRecording?
     @Published var factCheckHistory: [FactCheck] = []
     @Published var isProcessing: Bool = false
+    @Published var transcribedText: String = ""
     
     private var cancellables = Set<AnyCancellable>()
     private var audioRecorder: AVAudioRecorder?
     private var audioSession: AVAudioSession = AVAudioSession.sharedInstance()
     private var recordingStartTime: Date?
+    private var speechRecognizer: SFSpeechRecognizer?
+    private var lastRecordingURL: URL?
     
     init() {
         setupAudioSession()
+        setupSpeechRecognizer()
         requestMicrophonePermission()
+        requestSpeechRecognitionPermission()
     }
     
     // MARK: - Audio Setup
@@ -33,14 +39,41 @@ class MainViewModel: ObservableObject {
         }
     }
     
+    private func setupSpeechRecognizer() {
+        speechRecognizer = SFSpeechRecognizer(locale: Locale(identifier: "en-US"))
+        guard speechRecognizer != nil else {
+            print("❌ Speech recognition not available for this locale")
+            return
+        }
+        print("✅ Speech recognizer initialized")
+    }
+    
     private func requestMicrophonePermission() {
         AVAudioApplication.requestRecordPermission { [weak self] allowed in
             DispatchQueue.main.async {
                 if allowed {
-                    print("Microphone permission granted")
+                    print("✅ Microphone permission granted")
                 } else {
-                    print("Microphone permission denied")
+                    print("❌ Microphone permission denied")
                     self?.recordingState = .error("Microphone permission denied")
+                }
+            }
+        }
+    }
+    
+    private func requestSpeechRecognitionPermission() {
+        SFSpeechRecognizer.requestAuthorization { [weak self] authStatus in
+            DispatchQueue.main.async {
+                switch authStatus {
+                case .authorized:
+                    print("✅ Speech recognition permission granted")
+                case .denied:
+                    print("❌ Speech recognition permission denied")
+                    self?.recordingState = .error("Speech recognition denied")
+                case .restricted, .notDetermined:
+                    print("⚠️ Speech recognition permission restricted or not determined")
+                @unknown default:
+                    print("❓ Unknown speech recognition authorization status")
                 }
             }
         }
@@ -61,6 +94,7 @@ class MainViewModel: ObservableObject {
         // Create recording URL
         let documentsPath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
         let audioFilename = documentsPath.appendingPathComponent("recording_\(Date().timeIntervalSince1970).m4a")
+        lastRecordingURL = audioFilename
         
         // Configure recording settings
         let settings = [
@@ -110,19 +144,89 @@ class MainViewModel: ObservableObject {
         
         print("🔄 Processing recording...")
         
-        // TODO: This will eventually:
-        // 1. Send audio file to speech-to-text service
-        // 2. Send transcription to AI for fact-checking
-        // 3. Update the UI with results
-        
-        // For now, simulate processing with placeholder text
-        Task {
-            await processFactCheck(transcription: "Sample transcribed text from \(String(format: "%.1f", duration)) second recording")
+        // Transcribe the audio file
+        if let audioURL = lastRecordingURL {
+            Task {
+                await transcribeAudio(from: audioURL)
+            }
+        } else {
+            print("❌ No audio file URL available for transcription")
+            recordingState = .error("No audio file to transcribe")
         }
         
         // Clean up
         audioRecorder = nil
         recordingStartTime = nil
+    }
+    
+    // MARK: - Speech Recognition Functions
+    
+    private func transcribeAudio(from url: URL) async {
+        print("🎙️ Starting speech-to-text transcription...")
+        
+        guard let speechRecognizer = speechRecognizer, speechRecognizer.isAvailable else {
+            print("❌ Speech recognizer not available")
+            await MainActor.run {
+                recordingState = .error("Speech recognition unavailable")
+                isProcessing = false
+            }
+            return
+        }
+        
+        guard SFSpeechRecognizer.authorizationStatus() == .authorized else {
+            print("❌ Speech recognition not authorized")
+            await MainActor.run {
+                recordingState = .error("Speech recognition not authorized")
+                isProcessing = false
+            }
+            return
+        }
+        
+        let request = SFSpeechURLRecognitionRequest(url: url)
+        request.shouldReportPartialResults = false
+        
+        do {
+            let (result, error) = try await withCheckedThrowingContinuation { continuation in
+                speechRecognizer.recognitionTask(with: request) { result, error in
+                    if let error = error {
+                        continuation.resume(throwing: error)
+                        return
+                    }
+                    
+                    if let result = result, result.isFinal {
+                        continuation.resume(returning: (result, nil))
+                    }
+                }
+            }
+            
+            if let result = result {
+                let transcription = result.bestTranscription.formattedString
+                print("✅ Transcription completed: \"\(transcription)\"")
+                
+                await MainActor.run {
+                    transcribedText = transcription
+                }
+                
+                // Process the fact-check with the real transcription
+                await processFactCheck(transcription: transcription)
+                
+            } else {
+                print("❌ No transcription result")
+                await MainActor.run {
+                    transcribedText = "Could not transcribe audio"
+                    recordingState = .error("Transcription failed")
+                    isProcessing = false
+                }
+            }
+            
+        } catch {
+            print("❌ Transcription error: \(error)")
+            await MainActor.run {
+                transcribedText = "Transcription error: \(error.localizedDescription)"
+                recordingState = .error("Transcription failed")
+                isProcessing = false
+            }
+        }
     }
     
     // MARK: - Fact Checking Functions

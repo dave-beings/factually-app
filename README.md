@@ -150,3 +150,9 @@ The app is now production-ready with all core functionality complete. Future enh
 - "Check this fact with Factually"
 
 Users now have **three ways** to activate fact-checking: manual app launch, Siri voice commands, and home screen widget - making the app incredibly discreet and convenient in any social setting.
+
+**Technical Improvements:**
+- ✅ Fixed race condition when launching via Siri shortcuts
+- ✅ Moved audio session setup into `startRecording()` for guaranteed initialization
+- ✅ Added smart audio session checks to prevent redundant configuration
+- ✅ Enhanced concurrency safety with proper `@MainActor` handling

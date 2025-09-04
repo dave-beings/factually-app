@@ -24,7 +24,6 @@ class MainViewModel: ObservableObject {
     private var audioLevelTimer: Timer?
     
     init() {
-        setupAudioSession()
         setupSpeechRecognizer()
         requestMicrophonePermission()
         requestSpeechRecognitionPermission()
@@ -36,17 +35,6 @@ class MainViewModel: ObservableObject {
     }
     
     // MARK: - Audio Setup
-    
-    private func setupAudioSession() {
-        do {
-            try audioSession.setCategory(.playAndRecord, mode: .default)
-            try audioSession.setActive(true)
-            print("Audio session configured successfully")
-        } catch {
-            print("Failed to set up audio session: \(error)")
-            recordingState = .error("Audio setup failed")
-        }
-    }
     
     private func setupSpeechRecognizer() {
         speechRecognizer = SFSpeechRecognizer(locale: Locale(identifier: "en-US"))
@@ -139,6 +127,19 @@ class MainViewModel: ObservableObject {
     
     func startRecording() {
         print("🎤 Starting audio recording...")
+        
+        // Setup audio session if not already active
+        if !audioSession.isOtherAudioPlaying && audioSession.category != .playAndRecord {
+            do {
+                try audioSession.setCategory(.playAndRecord, mode: .default)
+                try audioSession.setActive(true)
+                print("✅ Audio session configured successfully")
+            } catch {
+                print("❌ Failed to set up audio session: \(error)")
+                recordingState = .error("Audio setup failed")
+                return
+            }
+        }
         
         // Check microphone permission
         guard AVAudioApplication.shared.recordPermission == .granted else {

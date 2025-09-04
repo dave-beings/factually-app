@@ -177,14 +177,10 @@ struct SettingsView: View {
     
     private func handleTranscriptionTest() {
         guard viewModel.recordingState == .idle || viewModel.recordingState == .completed else {
-            print("⚠️ Cannot start test - recording state is: \(viewModel.recordingState)")
             return
         }
         
-        print("🚀 Starting transcription test task...")
         Task {
-            print("📋 Task created, starting 5-second test recording...")
-            
             // Set test mode
             viewModel.isTestRecording = true
             viewModel.testTranscriptionResult = "Recording for 5 seconds..."
@@ -193,14 +189,10 @@ struct SettingsView: View {
             viewModel.startRecording()
             
             // Wait 5 seconds
-            print("⏱️ Waiting 5 seconds for auto-stop...")
             try? await Task.sleep(for: .seconds(5))
-            print("⏰ 5 seconds completed, stopping test recording...")
             
             // Stop recording in test mode
             viewModel.stopRecording(isTest: true)
-            
-            print("✅ Transcription test task completed")
         }
     }
 }

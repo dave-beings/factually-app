@@ -28,7 +28,7 @@ We are using the MoSCoW method to prioritise our features.
 
 ### C - Could-Have (Future "Wow" Features)
 
-* **"Look Back" Mode:** A premium feature that uses a rolling audio buffer to capture the last 60 seconds of conversation *before* you hit the button.
+* ~~**"Look Back" Mode:** A premium feature that uses a rolling audio buffer to capture the last 60 seconds of conversation *before* you hit the button.~~ ✅ **COMPLETED!**
 * ~~**Siri Shortcut & Widget:** For faster, more discreet activation without opening the app.~~ ✅ **COMPLETED!**
 * **Apple Watch App:** The ultimate discretion tool—a button on your watch face to trigger listening.
 * **"Tone" Setting:** Adjust the AI's personality from "Gentle" and "Peacemaker" to "Sassy."
@@ -118,6 +118,7 @@ Your Factually app now includes **ALL** the core features planned in the origina
 - ✅ **Unified Architecture**: Clean separation of Views, ViewModels, Models, Components
 - ✅ **Siri Shortcuts Integration**: Voice activation with phrases like "Ask Factually" and "Factually, check that"
 - ✅ **Home Screen Widget**: One-tap fact-checking directly from the home screen with custom URL scheme
+- ✅ **"Look Back" Mode**: Revolutionary 60-second rolling audio buffer for instant fact-checking of past conversation
 
 ---
 
@@ -127,15 +128,42 @@ The app is now production-ready with all core functionality complete. Future enh
 
 -   [x] **Siri Shortcuts integration for hands-free activation** - ✅ **COMPLETED!**
 -   [x] **Home Screen Widget for quick access** - ✅ **COMPLETED!**
+-   [x] **"Look Back" mode with rolling audio buffer** - ✅ **COMPLETED!**
 -   [ ] Apple Watch companion app
--   [ ] "Look Back" mode with rolling audio buffer
 -   [ ] Share functionality for fact-check results
 -   [ ] AI personality settings ("Gentle" vs "Sassy" responses)
 -   [ ] App Store submission and marketing
 
-### ✅ **Latest Update: Home Screen Widget**
+### ✅ **Latest Update: "Look Back" Mode - The Game Changer**
 
-**New Quick Access Features:**
+**Revolutionary Audio Buffer Technology:**
+- **60-Second Rolling Buffer**: Continuously records and maintains the last 60 seconds of audio
+- **Instant Capture**: Hit the button to instantly fact-check what was *just* said, even if you missed the moment
+- **Smart Chunking**: Uses 5-second audio chunks with intelligent rotation and cleanup
+- **Professional Audio Composition**: Modern AVFoundation APIs ensure perfect audio quality
+
+**Advanced Technical Implementation:**
+- **Circular Buffer Management**: Timestamp-based pruning keeps only relevant 60-second window
+- **Race Condition Prevention**: Robust timing mechanisms prevent "unplayable" file errors
+- **Modern Async/Await**: Uses latest Swift concurrency for smooth operation
+- **Memory Efficient**: Automatic cleanup prevents storage bloat
+
+**User Experience:**
+- **Settings Toggle**: Easy enable/disable with clear battery/privacy warnings
+- **Confirmation Dialog**: Users must acknowledge continuous microphone usage
+- **Seamless Integration**: Works perfectly with existing fact-checking pipeline
+- **Privacy Conscious**: Files automatically cleaned up, never permanently stored
+
+**How It Works:**
+1. Enable Look Back mode in Settings (requires confirmation)
+2. App continuously records 60-second rolling buffer while open
+3. When you hear something questionable, tap the record button
+4. Instantly processes the last 60 seconds for fact-checking
+5. No more "I wish I had been recording that!"
+
+### ✅ **Previous Update: Home Screen Widget**
+
+**Quick Access Features:**
 - **One-Tap Widget**: Beautiful dark-themed widget for instant fact-checking
 - **Custom URL Scheme**: `factually://start-recording` for seamless app integration
 - **Consistent Design**: Matches app's sleek aesthetic with blue microphone icon
@@ -149,7 +177,7 @@ The app is now production-ready with all core functionality complete. Future enh
 - "What's the Factually accurate answer?"
 - "Check this fact with Factually"
 
-Users now have **three ways** to activate fact-checking: manual app launch, Siri voice commands, and home screen widget - making the app incredibly discreet and convenient in any social setting.
+Users now have **four ways** to activate fact-checking: manual app launch, Siri voice commands, home screen widget, and Look Back mode - making the app incredibly powerful and convenient in any social setting.
 
 **Technical Improvements:**
 - ✅ Fixed race condition when launching via Siri shortcuts

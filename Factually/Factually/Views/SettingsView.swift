@@ -3,6 +3,7 @@ import SwiftUI
 /// Settings view for app configuration and preferences
 struct SettingsView: View {
     @ObservedObject var viewModel: MainViewModel
+    @State private var showingLookBackAlert = false
     
     var body: some View {
         ZStack {
@@ -39,6 +40,56 @@ struct SettingsView: View {
                         Text("Level: \(Int(viewModel.audioLevel * 100))%")
                             .font(.caption)
                             .foregroundColor(.white.opacity(0.7))
+                    }
+                    .padding()
+                    .background(
+                        RoundedRectangle(cornerRadius: 12)
+                            .fill(Color.white.opacity(0.1))
+                    )
+                }
+                .padding()
+                .background(
+                    RoundedRectangle(cornerRadius: 16)
+                        .fill(Color.white.opacity(0.05))
+                )
+                
+                // Look Back Mode Section
+                VStack(spacing: 16) {
+                    Text("Look Back Mode")
+                        .font(.headline)
+                        .foregroundColor(.white)
+                    
+                    Text("Continuously records the last 60 seconds of audio")
+                        .font(.subheadline)
+                        .foregroundColor(.white.opacity(0.8))
+                        .multilineTextAlignment(.center)
+                    
+                    // Look Back Toggle
+                    HStack {
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("Enable Look Back")
+                                .font(.body)
+                                .foregroundColor(.white)
+                            
+                            Text("Uses more battery and microphone")
+                                .font(.caption)
+                                .foregroundColor(.white.opacity(0.6))
+                        }
+                        
+                        Spacer()
+                        
+                        Toggle("", isOn: Binding(
+                            get: { viewModel.isLookBackEnabled },
+                            set: { newValue in
+                                if newValue {
+                                    showingLookBackAlert = true
+                                } else {
+                                    viewModel.isLookBackEnabled = false
+                                    viewModel.stopLookBack()
+                                }
+                            }
+                        ))
+                        .toggleStyle(SwitchToggleStyle(tint: .blue))
                     }
                     .padding()
                     .background(
@@ -118,6 +169,17 @@ struct SettingsView: View {
         .navigationTitle("Settings")
         .navigationBarTitleDisplayMode(.inline)
         .preferredColorScheme(.dark)
+        .alert("Enable Look Back Mode?", isPresented: $showingLookBackAlert) {
+            Button("Cancel", role: .cancel) {
+                // Do nothing - toggle will remain off
+            }
+            Button("Enable") {
+                viewModel.isLookBackEnabled = true
+                viewModel.startLookBack()
+            }
+        } message: {
+            Text("Look Back mode continuously records the last 60 seconds of audio while the app is open. This uses more battery and your microphone will be active. Are you sure?")
+        }
     }
     
     // MARK: - Computed Properties

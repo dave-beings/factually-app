@@ -12,6 +12,8 @@ class MainViewModel: ObservableObject {
     @Published var isProcessing: Bool = false
     @Published var transcribedText: String = ""
     @Published var audioLevel: Float = 0.0
+    @Published var testTranscriptionResult: String = ""
+    @Published var isTestRecording: Bool = false
     
     private var cancellables = Set<AnyCancellable>()
     private var audioRecorder: AVAudioRecorder?
@@ -20,6 +22,7 @@ class MainViewModel: ObservableObject {
     private var speechRecognizer: SFSpeechRecognizer?
     private var lastRecordingURL: URL?
     private var audioLevelTimer: Timer?
+    private var testRecordingTimer: Timer?
     
     init() {
         setupAudioSession()
@@ -166,6 +169,163 @@ class MainViewModel: ObservableObject {
         // Clean up
         audioRecorder = nil
         recordingStartTime = nil
+    }
+    
+    // MARK: - Test Recording Functions
+    
+    func startTestRecording() {
+        print("🧪 Starting 5-second transcription test...")
+        
+        // Check microphone permission
+        guard AVAudioApplication.shared.recordPermission == .granted else {
+            print("❌ Microphone permission not granted")
+            recordingState = .error("Microphone permission required")
+            return
+        }
+        
+        // Create recording URL
+        let documentsPath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+        let audioFilename = documentsPath.appendingPathComponent("test_recording_\(Date().timeIntervalSince1970).m4a")
+        lastRecordingURL = audioFilename
+        
+        // Configure recording settings
+        let settings = [
+            AVFormatIDKey: Int(kAudioFormatMPEG4AAC),
+            AVSampleRateKey: 44100,
+            AVNumberOfChannelsKey: 1,
+            AVEncoderAudioQualityKey: AVAudioQuality.high.rawValue
+        ]
+        
+        do {
+            // Create and start the audio recorder
+            audioRecorder = try AVAudioRecorder(url: audioFilename, settings: settings)
+            audioRecorder?.isMeteringEnabled = true
+            audioRecorder?.record()
+            
+            recordingStartTime = Date()
+            recordingState = .recording
+            isTestRecording = true
+            testTranscriptionResult = "Recording for 5 seconds..."
+            
+            // Start audio level monitoring
+            startAudioLevelMonitoring()
+            
+            // Set up 5-second auto-stop timer
+            testRecordingTimer = Timer.scheduledTimer(withTimeInterval: 5.0, repeats: false) { [weak self] _ in
+                Task { @MainActor in
+                    self?.stopTestRecording()
+                }
+            }
+            
+            print("✅ Test recording started successfully")
+            print("📁 Recording to: \(audioFilename.lastPathComponent)")
+            print("⏱️ Will auto-stop in 5 seconds")
+            
+        } catch {
+            print("❌ Failed to start test recording: \(error)")
+            recordingState = .error("Test recording failed to start")
+            isTestRecording = false
+        }
+    }
+    
+    private func stopTestRecording() {
+        print("⏹️ Stopping test recording...")
+        
+        // Clean up timer
+        testRecordingTimer?.invalidate()
+        testRecordingTimer = nil
+        
+        guard let recorder = audioRecorder, recorder.isRecording else {
+            print("❌ No active test recording to stop")
+            isTestRecording = false
+            return
+        }
+        
+        // Stop recording and calculate duration
+        recorder.stop()
+        
+        let duration = recordingStartTime != nil ? Date().timeIntervalSince(recordingStartTime!) : 0
+        print("⏱️ Test recording duration: \(String(format: "%.1f", duration)) seconds")
+        
+        // Update UI state
+        recordingState = .processing
+        isTestRecording = false
+        testTranscriptionResult = "Processing transcription..."
+        
+        print("🔄 Processing test transcription...")
+        
+        // Transcribe the audio file (without adding to history)
+        if let audioURL = lastRecordingURL {
+            Task {
+                await transcribeTestAudio(from: audioURL)
+            }
+        } else {
+            print("❌ No audio file URL available for test transcription")
+            recordingState = .idle
+            testTranscriptionResult = "Error: No audio file to transcribe"
+        }
+        
+        // Stop audio level monitoring
+        stopAudioLevelMonitoring()
+        
+        // Clean up
+        audioRecorder = nil
+        recordingStartTime = nil
+    }
+    
+    private func transcribeTestAudio(from url: URL) async {
+        print("🎙️ Starting test speech-to-text transcription...")
+        
+        guard let speechRecognizer = speechRecognizer, speechRecognizer.isAvailable else {
+            print("❌ Speech recognizer not available")
+            await MainActor.run {
+                recordingState = .idle
+                testTranscriptionResult = "Error: Speech recognition unavailable"
+            }
+            return
+        }
+        
+        guard SFSpeechRecognizer.authorizationStatus() == .authorized else {
+            print("❌ Speech recognition not authorized")
+            await MainActor.run {
+                recordingState = .idle
+                testTranscriptionResult = "Error: Speech recognition not authorized"
+            }
+            return
+        }
+        
+        let request = SFSpeechURLRecognitionRequest(url: url)
+        request.shouldReportPartialResults = false
+        
+        do {
+            let result: SFSpeechRecognitionResult = try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<SFSpeechRecognitionResult, Error>) in
+                speechRecognizer.recognitionTask(with: request) { result, error in
+                    if let error = error {
+                        continuation.resume(throwing: error)
+                        return
+                    }
+                    
+                    if let result = result, result.isFinal {
+                        continuation.resume(returning: result)
+                    }
+                }
+            }
+            
+            let transcription = result.bestTranscription.formattedString
+            print("✅ Test transcription completed: \"\(transcription)\"")
+            
+            await MainActor.run {
+                testTranscriptionResult = transcription.isEmpty ? "No speech detected" : transcription
+                recordingState = .idle
+            }
+            
+        } catch {
+            print("❌ Test transcription error: \(error)")
+            await MainActor.run {
+                testTranscriptionResult = "Transcription error: \(error.localizedDescription)"
+                recordingState = .idle
+            }
+        }
     }
     
     // MARK: - Audio Level Monitoring

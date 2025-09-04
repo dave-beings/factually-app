@@ -23,11 +23,11 @@ struct SettingsView: View {
                 
                 // Audio Level Meter Section
                 VStack(spacing: 16) {
-                    Text("Microphone Test")
+                    Text("Live Audio Levels")
                         .font(.headline)
                         .foregroundColor(.white)
                     
-                    Text("Test your microphone levels")
+                    Text("Shows microphone input during recording")
                         .font(.subheadline)
                         .foregroundColor(.white.opacity(0.8))
                     
@@ -45,23 +45,6 @@ struct SettingsView: View {
                         RoundedRectangle(cornerRadius: 12)
                             .fill(Color.white.opacity(0.1))
                     )
-                    
-                    // Control Button
-                    Button(action: {
-                        handleMicrophoneTest()
-                    }) {
-                        HStack {
-                            Image(systemName: microphoneButtonIcon)
-                            Text(microphoneButtonText)
-                        }
-                        .foregroundColor(.white)
-                        .padding(.horizontal, 24)
-                        .padding(.vertical, 12)
-                        .background(
-                            RoundedRectangle(cornerRadius: 25)
-                                .fill(microphoneButtonColor)
-                        )
-                    }
                 }
                 .padding()
                 .background(
@@ -138,58 +121,6 @@ struct SettingsView: View {
     }
     
     // MARK: - Computed Properties
-    
-    private var microphoneButtonText: String {
-        switch viewModel.recordingState {
-        case .idle, .completed:
-            return "Start Listening"
-        case .recording:
-            return "Stop Listening"
-        case .processing:
-            return "Processing..."
-        case .error:
-            return "Try Again"
-        }
-    }
-    
-    private var microphoneButtonIcon: String {
-        switch viewModel.recordingState {
-        case .idle, .completed:
-            return "mic.fill"
-        case .recording:
-            return "stop.fill"
-        case .processing:
-            return "hourglass"
-        case .error:
-            return "exclamationmark.triangle.fill"
-        }
-    }
-    
-    private var microphoneButtonColor: Color {
-        switch viewModel.recordingState {
-        case .idle, .completed:
-            return .blue
-        case .recording:
-            return .red
-        case .processing:
-            return .gray
-        case .error:
-            return .orange
-        }
-    }
-    
-    // MARK: - Actions
-    
-    private func handleMicrophoneTest() {
-        switch viewModel.recordingState {
-        case .idle, .completed:
-            viewModel.startRecording()
-        case .recording:
-            viewModel.stopRecording()
-        case .processing, .error:
-            break // Do nothing in these states
-        }
-    }
     
     // MARK: - Transcription Test Properties
     

@@ -246,11 +246,15 @@ struct SettingsView: View {
     
     private func handleTranscriptionTest() {
         guard viewModel.recordingState == .idle || viewModel.recordingState == .completed else {
+            print("⚠️ Cannot start test - recording state is: \(viewModel.recordingState)")
             return
         }
         
+        print("🚀 Starting transcription test task...")
         Task {
+            print("📋 Task created, calling startTestRecording()...")
             await viewModel.startTestRecording()
+            print("✅ startTestRecording() completed")
         }
     }
 }

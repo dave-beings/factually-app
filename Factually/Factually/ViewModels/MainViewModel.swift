@@ -214,9 +214,17 @@ class MainViewModel: ObservableObject {
             print("⏱️ Will auto-stop in 5 seconds")
             
             // Wait for 5 seconds using modern async/await
-            try? await Task.sleep(for: .seconds(5))
+            print("🕐 Starting 5-second sleep...")
+            do {
+                try await Task.sleep(for: .seconds(5))
+                print("⏰ 5-second sleep completed, stopping recording...")
+            } catch {
+                print("❌ Task.sleep was cancelled or interrupted: \(error)")
+                return
+            }
             
             // Auto-stop after 5 seconds
+            print("🛑 Calling stopTestRecording()...")
             stopTestRecording()
             
         } catch {

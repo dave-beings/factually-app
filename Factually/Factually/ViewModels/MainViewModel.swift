@@ -129,8 +129,8 @@ class MainViewModel: ObservableObject {
         }
     }
     
-    func stopRecording() {
-        print("⏹️ Stopping audio recording...")
+    func stopRecording(isTest: Bool = false) {
+        print("⏹️ Stopping audio recording... (isTest: \(isTest))")
         
         guard let recorder = audioRecorder, recorder.isRecording else {
             print("❌ No active recording to stop")
@@ -155,10 +155,13 @@ class MainViewModel: ObservableObject {
         // Transcribe the audio file
         if let audioURL = lastRecordingURL {
             Task {
-                await transcribeAudio(from: audioURL)
+                await transcribeAudio(from: audioURL, isTest: isTest)
             }
         } else {
             print("❌ No audio file URL available for transcription")
+            if isTest {
+                testTranscriptionResult = "Error: No audio file to transcribe"
+            }
             recordingState = .error("No audio file to transcribe")
         }
         
@@ -168,172 +171,6 @@ class MainViewModel: ObservableObject {
         // Clean up
         audioRecorder = nil
         recordingStartTime = nil
-    }
-    
-    // MARK: - Test Recording Functions
-    
-    func startTestRecording() async {
-        print("DEBUG: startTestRecording() called.")
-        print("🧪 Starting 5-second transcription test...")
-        
-        // Check microphone permission
-        guard AVAudioApplication.shared.recordPermission == .granted else {
-            print("❌ Microphone permission not granted")
-            recordingState = .error("Microphone permission required")
-            return
-        }
-        
-        // Create recording URL
-        let documentsPath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
-        let audioFilename = documentsPath.appendingPathComponent("test_recording_\(Date().timeIntervalSince1970).m4a")
-        lastRecordingURL = audioFilename
-        
-        // Configure recording settings
-        let settings = [
-            AVFormatIDKey: Int(kAudioFormatMPEG4AAC),
-            AVSampleRateKey: 44100,
-            AVNumberOfChannelsKey: 1,
-            AVEncoderAudioQualityKey: AVAudioQuality.high.rawValue
-        ]
-        
-        do {
-            // Create and start the audio recorder
-            audioRecorder = try AVAudioRecorder(url: audioFilename, settings: settings)
-            audioRecorder?.isMeteringEnabled = true
-            audioRecorder?.record()
-            
-            recordingStartTime = Date()
-            recordingState = .recording
-            isTestRecording = true
-            testTranscriptionResult = "Recording for 5 seconds..."
-            
-            // Start audio level monitoring
-            startAudioLevelMonitoring()
-            
-            print("✅ Test recording started successfully")
-            print("📁 Recording to: \(audioFilename.lastPathComponent)")
-            print("⏱️ Will auto-stop in 5 seconds")
-            
-            // Wait for 5 seconds using modern async/await
-            print("DEBUG: Entering 5-second sleep.")
-            print("🕐 Starting 5-second sleep...")
-            do {
-                try await Task.sleep(for: .seconds(5))
-                print("DEBUG: 5-second sleep finished. Calling stopTestRecording().")
-                print("⏰ 5-second sleep completed, stopping recording...")
-            } catch {
-                print("❌ Task.sleep was cancelled or interrupted: \(error)")
-                return
-            }
-            
-            // Auto-stop after 5 seconds
-            print("🛑 Calling stopTestRecording()...")
-            stopTestRecording()
-            
-        } catch {
-            print("❌ Failed to start test recording: \(error)")
-            recordingState = .error("Test recording failed to start")
-            isTestRecording = false
-        }
-    }
-    
-    private func stopTestRecording() {
-        print("DEBUG: stopTestRecording() was successfully called.")
-        print("⏹️ Stopping test recording...")
-        
-        // Note: No timer cleanup needed when using DispatchQueue.main.asyncAfter
-        
-        guard let recorder = audioRecorder, recorder.isRecording else {
-            print("❌ No active test recording to stop")
-            isTestRecording = false
-            return
-        }
-        
-        // Stop recording and calculate duration
-        recorder.stop()
-        
-        let duration = recordingStartTime != nil ? Date().timeIntervalSince(recordingStartTime!) : 0
-        print("⏱️ Test recording duration: \(String(format: "%.1f", duration)) seconds")
-        
-        // Update UI state
-        recordingState = .processing
-        isTestRecording = false
-        testTranscriptionResult = "Processing transcription..."
-        
-        print("🔄 Processing test transcription...")
-        
-        // Transcribe the audio file (without adding to history)
-        if let audioURL = lastRecordingURL {
-            Task {
-                await transcribeTestAudio(from: audioURL)
-            }
-        } else {
-            print("❌ No audio file URL available for test transcription")
-            recordingState = .idle
-            testTranscriptionResult = "Error: No audio file to transcribe"
-        }
-        
-        // Stop audio level monitoring
-        stopAudioLevelMonitoring()
-        
-        // Clean up
-        audioRecorder = nil
-        recordingStartTime = nil
-    }
-    
-    private func transcribeTestAudio(from url: URL) async {
-        print("🎙️ Starting test speech-to-text transcription...")
-        
-        guard let speechRecognizer = speechRecognizer, speechRecognizer.isAvailable else {
-            print("❌ Speech recognizer not available")
-            await MainActor.run {
-                recordingState = .idle
-                testTranscriptionResult = "Error: Speech recognition unavailable"
-            }
-            return
-        }
-        
-        guard SFSpeechRecognizer.authorizationStatus() == .authorized else {
-            print("❌ Speech recognition not authorized")
-            await MainActor.run {
-                recordingState = .idle
-                testTranscriptionResult = "Error: Speech recognition not authorized"
-            }
-            return
-        }
-        
-        let request = SFSpeechURLRecognitionRequest(url: url)
-        request.shouldReportPartialResults = false
-        
-        do {
-            let result: SFSpeechRecognitionResult = try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<SFSpeechRecognitionResult, Error>) in
-                speechRecognizer.recognitionTask(with: request) { result, error in
-                    if let error = error {
-                        continuation.resume(throwing: error)
-                        return
-                    }
-                    
-                    if let result = result, result.isFinal {
-                        continuation.resume(returning: result)
-                    }
-                }
-            }
-            
-            let transcription = result.bestTranscription.formattedString
-            print("✅ Test transcription completed: \"\(transcription)\"")
-            
-            await MainActor.run {
-                testTranscriptionResult = transcription.isEmpty ? "No speech detected" : transcription
-                recordingState = .idle
-            }
-            
-        } catch {
-            print("❌ Test transcription error: \(error)")
-            await MainActor.run {
-                testTranscriptionResult = "Transcription error: \(error.localizedDescription)"
-                recordingState = .idle
-            }
-        }
     }
     
     // MARK: - Audio Level Monitoring
@@ -369,14 +206,20 @@ class MainViewModel: ObservableObject {
     
     // MARK: - Speech Recognition Functions
     
-    private func transcribeAudio(from url: URL) async {
-        print("🎙️ Starting speech-to-text transcription...")
+    private func transcribeAudio(from url: URL, isTest: Bool = false) async {
+        print("🎙️ Starting speech-to-text transcription... (isTest: \(isTest))")
         
         guard let speechRecognizer = speechRecognizer, speechRecognizer.isAvailable else {
             print("❌ Speech recognizer not available")
             await MainActor.run {
-                recordingState = .error("Speech recognition unavailable")
-                isProcessing = false
+                if isTest {
+                    testTranscriptionResult = "Error: Speech recognition unavailable"
+                    recordingState = .idle
+                    isTestRecording = false
+                } else {
+                    recordingState = .error("Speech recognition unavailable")
+                    isProcessing = false
+                }
             }
             return
         }
@@ -384,8 +227,14 @@ class MainViewModel: ObservableObject {
         guard SFSpeechRecognizer.authorizationStatus() == .authorized else {
             print("❌ Speech recognition not authorized")
             await MainActor.run {
-                recordingState = .error("Speech recognition not authorized")
-                isProcessing = false
+                if isTest {
+                    testTranscriptionResult = "Error: Speech recognition not authorized"
+                    recordingState = .idle
+                    isTestRecording = false
+                } else {
+                    recordingState = .error("Speech recognition not authorized")
+                    isProcessing = false
+                }
             }
             return
         }
@@ -412,17 +261,38 @@ class MainViewModel: ObservableObject {
             
             await MainActor.run {
                 transcribedText = transcription
+                
+                if isTest {
+                    // For test mode: update test result and set state to idle
+                    testTranscriptionResult = transcription.isEmpty ? "No speech detected" : transcription
+                    recordingState = .idle
+                    isTestRecording = false
+                } else {
+                    // For regular mode: continue with fact-checking
+                    // (processFactCheck will be called below)
+                }
             }
             
-            // Process the fact-check with the real transcription
-            await processFactCheck(transcription: transcription)
+            // Process the fact-check with the real transcription (only for regular recording)
+            if !isTest {
+                await processFactCheck(transcription: transcription)
+            }
             
         } catch {
             print("❌ Transcription error: \(error)")
             await MainActor.run {
                 transcribedText = "Transcription error: \(error.localizedDescription)"
-                recordingState = .error("Transcription failed")
-                isProcessing = false
+                
+                if isTest {
+                    // For test mode: update test result and set state to idle
+                    testTranscriptionResult = "Transcription error: \(error.localizedDescription)"
+                    recordingState = .idle
+                    isTestRecording = false
+                } else {
+                    // For regular mode: set error state
+                    recordingState = .error("Transcription failed")
+                    isProcessing = false
+                }
             }
         }
     }

@@ -252,9 +252,24 @@ struct SettingsView: View {
         
         print("🚀 Starting transcription test task...")
         Task {
-            print("📋 Task created, calling startTestRecording()...")
-            await viewModel.startTestRecording()
-            print("✅ startTestRecording() completed")
+            print("📋 Task created, starting 5-second test recording...")
+            
+            // Set test mode
+            viewModel.isTestRecording = true
+            viewModel.testTranscriptionResult = "Recording for 5 seconds..."
+            
+            // Start recording using main function
+            viewModel.startRecording()
+            
+            // Wait 5 seconds
+            print("⏱️ Waiting 5 seconds for auto-stop...")
+            try? await Task.sleep(for: .seconds(5))
+            print("⏰ 5 seconds completed, stopping test recording...")
+            
+            // Stop recording in test mode
+            viewModel.stopRecording(isTest: true)
+            
+            print("✅ Transcription test task completed")
         }
     }
 }

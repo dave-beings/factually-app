@@ -35,7 +35,12 @@ struct MainView: View {
                     Spacer()
                     
                     // Navigation to history
-                    NavigationLink(destination: HistoryView(factChecks: viewModel.factCheckHistory)) {
+                    NavigationLink(destination: HistoryView(
+                        factChecks: viewModel.factCheckHistory,
+                        onClearHistory: {
+                            viewModel.clearHistory()
+                        }
+                    )) {
                         HStack {
                             Image(systemName: "clock.arrow.circlepath")
                             Text("View History")

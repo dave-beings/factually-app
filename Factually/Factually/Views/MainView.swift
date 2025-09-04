@@ -58,6 +58,15 @@ struct MainView: View {
                 }
                 .padding()
             }
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    NavigationLink(destination: SettingsView()) {
+                        Image(systemName: "gearshape.fill")
+                            .foregroundColor(.white)
+                            .font(.system(size: 18))
+                    }
+                }
+            }
         }
         .preferredColorScheme(.dark)
     }

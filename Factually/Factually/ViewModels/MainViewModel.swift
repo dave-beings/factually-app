@@ -222,24 +222,46 @@ class MainViewModel: ObservableObject {
     // MARK: - Fact Checking Functions
     
     func processFactCheck(transcription: String) async {
-        // TODO: Implement AI fact-checking logic
-        // This is a placeholder for the actual implementation
+        print("🧠 Starting AI fact-checking for: \"\(transcription)\"")
         
-        // Simulate processing delay
-        try? await Task.sleep(nanoseconds: 2_000_000_000) // 2 seconds
-        
-        // Create a sample fact check result
-        let sampleFactCheck = FactCheck(
-            originalClaim: transcription,
-            verdict: .correction,
-            explanation: "This is a placeholder explanation that will be replaced with actual AI-generated content.",
-            sources: ["https://example.com"]
-        )
-        
-        DispatchQueue.main.async {
-            self.factCheckHistory.insert(sampleFactCheck, at: 0)
-            self.isProcessing = false
-            self.recordingState = .completed
+        do {
+            // Call Gemini API for fact-checking
+            let factCheckResponse = try await GeminiService.shared.factCheck(transcription)
+            
+            print("✅ AI fact-check completed")
+            print("📝 Verdict: \(factCheckResponse.verdict.rawValue)")
+            print("💡 Explanation: \(factCheckResponse.explanation)")
+            
+            // Create fact check result with AI response
+            let factCheck = FactCheck(
+                originalClaim: transcription,
+                verdict: factCheckResponse.verdict,
+                explanation: factCheckResponse.explanation,
+                sources: [] // TODO: Could be enhanced to include sources from AI
+            )
+            
+            await MainActor.run {
+                self.factCheckHistory.insert(factCheck, at: 0)
+                self.isProcessing = false
+                self.recordingState = .completed
+            }
+            
+        } catch {
+            print("❌ AI fact-checking failed: \(error)")
+            
+            // Fallback to placeholder if AI fails
+            let fallbackFactCheck = FactCheck(
+                originalClaim: transcription,
+                verdict: .unclear,
+                explanation: "Unable to verify this claim at the moment. Please check your internet connection and API key configuration. Error: \(error.localizedDescription)",
+                sources: []
+            )
+            
+            await MainActor.run {
+                self.factCheckHistory.insert(fallbackFactCheck, at: 0)
+                self.isProcessing = false
+                self.recordingState = .completed
+            }
         }
     }
     

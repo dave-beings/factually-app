@@ -2,7 +2,7 @@ import SwiftUI
 
 /// View that displays the history of fact-checks
 struct HistoryView: View {
-    let factChecks: [FactCheck]
+    let recordingSessions: [RecordingSession]
     let onClearHistory: () -> Void
     
     @State private var showingClearAlert = false
@@ -12,7 +12,7 @@ struct HistoryView: View {
             Color.black
                 .ignoresSafeArea()
             
-            if factChecks.isEmpty {
+            if recordingSessions.isEmpty {
                 VStack(spacing: 16) {
                     Image(systemName: "clock.arrow.circlepath")
                         .font(.system(size: 60))
@@ -29,9 +29,22 @@ struct HistoryView: View {
                 }
             } else {
                 ScrollView {
-                    LazyVStack(spacing: 16) {
-                        ForEach(factChecks) { factCheck in
-                            FactCheckCard(factCheck: factCheck)
+                    LazyVStack(spacing: 24) {
+                        ForEach(recordingSessions) { session in
+                            VStack(alignment: .leading, spacing: 12) {
+                                // Session header with timestamp
+                                Text(formatSessionTimestamp(session.timestamp))
+                                    .font(.headline)
+                                    .foregroundColor(.white)
+                                    .padding(.horizontal, 16)
+                                
+                                // Fact check cards for this session
+                                LazyVStack(spacing: 12) {
+                                    ForEach(session.factChecks) { factCheck in
+                                        FactCheckCard(factCheck: factCheck)
+                                    }
+                                }
+                            }
                         }
                     }
                     .padding()
@@ -43,7 +56,7 @@ struct HistoryView: View {
         .navigationBarBackButtonHidden(false)
         .toolbar {
             ToolbarItem(placement: .navigationBarTrailing) {
-                if !factChecks.isEmpty {
+                if !recordingSessions.isEmpty {
                     Button("Clear") {
                         showingClearAlert = true
                     }
@@ -61,25 +74,46 @@ struct HistoryView: View {
         }
         .preferredColorScheme(.dark)
     }
+    
+    /// Format the session timestamp for display
+    private func formatSessionTimestamp(_ timestamp: Date) -> String {
+        let formatter = DateFormatter()
+        let calendar = Calendar.current
+        
+        if calendar.isDateInToday(timestamp) {
+            formatter.dateFormat = "'Today at' h:mm a"
+        } else if calendar.isDateInYesterday(timestamp) {
+            formatter.dateFormat = "'Yesterday at' h:mm a"
+        } else {
+            formatter.dateFormat = "MMM d 'at' h:mm a"
+        }
+        
+        return formatter.string(from: timestamp)
+    }
 }
 
 #Preview {
     NavigationView {
         HistoryView(
-            factChecks: [
-                FactCheck(
-                    originalClaim: "The Great Wall of China is visible from space.",
-                    verdict: .incorrect,
-                    explanation: "This is a common myth. The Great Wall of China is not visible from space with the naked eye.",
-                    sources: ["https://www.nasa.gov/vision/earth/lookingatearth/great_wall.html"],
-                    sourceURL: "https://www.nasa.gov/vision/earth/lookingatearth/great_wall.html"
-                ),
-                FactCheck(
-                    originalClaim: "Honey never spoils.",
-                    verdict: .correct,
-                    explanation: "Honey has an indefinite shelf life due to its low moisture content and acidic pH.",
-                    sources: ["https://www.smithsonianmag.com/science-nature/the-science-behind-honeys-eternal-shelf-life-1218690/"],
-                    sourceURL: "https://www.smithsonianmag.com/science-nature/the-science-behind-honeys-eternal-shelf-life-1218690/"
+            recordingSessions: [
+                RecordingSession(
+                    timestamp: Date(),
+                    factChecks: [
+                        FactCheck(
+                            originalClaim: "The Great Wall of China is visible from space.",
+                            verdict: .incorrect,
+                            explanation: "This is a common myth. The Great Wall of China is not visible from space with the naked eye.",
+                            sources: ["https://www.nasa.gov/vision/earth/lookingatearth/great_wall.html"],
+                            sourceURL: "https://www.nasa.gov/vision/earth/lookingatearth/great_wall.html"
+                        ),
+                        FactCheck(
+                            originalClaim: "Honey never spoils.",
+                            verdict: .correct,
+                            explanation: "Honey has an indefinite shelf life due to its low moisture content and acidic pH.",
+                            sources: ["https://www.smithsonianmag.com/science-nature/the-science-behind-honeys-eternal-shelf-life-1218690/"],
+                            sourceURL: "https://www.smithsonianmag.com/science-nature/the-science-behind-honeys-eternal-shelf-life-1218690/"
+                        )
+                    ]
                 )
             ],
             onClearHistory: {

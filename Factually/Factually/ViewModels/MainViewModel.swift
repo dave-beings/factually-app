@@ -8,7 +8,7 @@ import Speech
 class MainViewModel: ObservableObject {
     @Published var recordingState: RecordingState = .idle
     @Published var currentRecording: AudioRecording?
-    @Published var factCheckHistory: [FactCheck] = []
+    @Published var factCheckHistory: [RecordingSession] = []
     @Published var isProcessing: Bool = false
     @Published var transcribedText: String = ""
     @Published var audioLevel: Float = 0.0
@@ -307,20 +307,44 @@ class MainViewModel: ObservableObject {
             let factCheckResponse = try await GeminiService.shared.factCheck(transcription)
             
             print("✅ AI fact-check completed")
-            print("📝 Verdict: \(factCheckResponse.verdict.rawValue)")
-            print("💡 Explanation: \(factCheckResponse.explanation)")
+            print("📊 Found \(factCheckResponse.factChecks.count) fact check(s)")
             
-            // Create fact check result with AI response
-            let factCheck = FactCheck(
-                originalClaim: transcription,
-                verdict: factCheckResponse.verdict,
-                explanation: factCheckResponse.explanation,
-                sources: [], // TODO: Could be enhanced to include sources from AI
-                sourceURL: factCheckResponse.sourceURL
-            )
+            // Create FactCheck objects for each fact check returned by AI
+            var newFactChecks: [FactCheck] = []
+            
+            for singleFactCheck in factCheckResponse.factChecks {
+                print("📝 Claim: \(singleFactCheck.claim)")
+                print("📝 Verdict: \(singleFactCheck.verdict.rawValue)")
+                print("💡 Explanation: \(singleFactCheck.explanation)")
+                
+                let factCheck = FactCheck(
+                    originalClaim: singleFactCheck.claim,
+                    verdict: singleFactCheck.verdict,
+                    explanation: singleFactCheck.explanation,
+                    sources: [], // TODO: Could be enhanced to include sources from AI
+                    sourceURL: singleFactCheck.sourceURL
+                )
+                
+                newFactChecks.append(factCheck)
+            }
+            
+            // If no fact checks were found, create a single entry indicating this
+            if newFactChecks.isEmpty {
+                print("ℹ️ No factual claims identified in the transcription")
+                let noClaimsFactCheck = FactCheck(
+                    originalClaim: transcription,
+                    verdict: .unclear,
+                    explanation: "No specific factual claims were identified in this recording.",
+                    sources: [],
+                    sourceURL: nil
+                )
+                newFactChecks.append(noClaimsFactCheck)
+            }
             
             await MainActor.run {
-                self.factCheckHistory.insert(factCheck, at: 0)
+                // Create a new recording session with all the fact checks
+                let recordingSession = RecordingSession(factChecks: newFactChecks)
+                self.factCheckHistory.insert(recordingSession, at: 0)
                 self.isProcessing = false
                 self.recordingState = .completed
             }
@@ -338,7 +362,9 @@ class MainViewModel: ObservableObject {
             )
             
             await MainActor.run {
-                self.factCheckHistory.insert(fallbackFactCheck, at: 0)
+                // Create a recording session with the fallback fact check
+                let fallbackSession = RecordingSession(factChecks: [fallbackFactCheck])
+                self.factCheckHistory.insert(fallbackSession, at: 0)
                 self.isProcessing = false
                 self.recordingState = .completed
             }

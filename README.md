@@ -47,7 +47,8 @@ We are using the MoSCoW method to prioritise our features.
 2.  They discreetly open the app.
 3.  They tap the large **`Listen`** button. A subtle animation shows it's recording.
 4.  They tap the button again to stop. The screen shows a "Verifying..." state.
-5.  Within seconds, the result card slides up with the clear, concise fact-check.
+5.  Within seconds, the AI analyzes the recording and identifies all factual claims made.
+6.  Multiple result cards appear in the history, each addressing a specific claim from the same recording session.
 
 ---
 
@@ -98,16 +99,19 @@ Your Factually app now includes **ALL** the core features planned in the origina
 - ✅ **One-Tap Listening**: Large, animated Listen button with state feedback
 - ✅ **Speech-to-Text**: Apple's native speech recognition with permission handling
 - ✅ **AI Fact Analysis**: Google Gemini 1.5 Pro integration with structured prompts
+- ✅ **Multiple Facts Detection**: AI automatically identifies and fact-checks multiple distinct claims in a single recording
 - ✅ **Simple Result Card**: Clean display with verdict, explanation, and source links
 
 ### **Should-Have Features (100% Complete):**
-- ✅ **History Screen**: Complete fact-check history with navigation and clear functionality
+- ✅ **History Screen**: Complete fact-check history with session grouping and timestamps
 - ✅ **Source Linking**: Clickable "View Source" links from Gemini AI responses
 - ✅ **Settings Page**: Gear icon navigation with audio testing capabilities
 
 ### **Additional Features Built:**
 - ✅ **Live Audio Level Meter**: Real-time microphone input visualization
 - ✅ **Transcription Testing**: 5-second test recording with dedicated results
+- ✅ **Session-Based History**: Recording sessions group multiple fact-checks with timestamps (e.g., "Today at 2:30 PM")
+- ✅ **Smart Claim Detection**: AI identifies distinct factual claims even in complex conversations
 - ✅ **Professional Error Handling**: Comprehensive permission and API error management
 - ✅ **Dark Theme UI**: Sleek, discreet interface perfect for social settings
 - ✅ **State Management**: Robust recording states with visual feedback

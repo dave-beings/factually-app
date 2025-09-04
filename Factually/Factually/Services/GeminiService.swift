@@ -36,19 +36,29 @@ class GeminiService {
         print("🧠 Sending fact-check request to Gemini: \"\(claim)\"")
         
         let prompt = """
-        You are a concise and accurate fact-checker. Analyze the following claim and provide:
-        1. A verdict: "Correct", "Incorrect", "Partially Correct", "Unclear", or "Correction"
-        2. A brief, clear explanation (2-3 sentences maximum)
-        3. A reliable source URL that supports your explanation (Wikipedia, government sites, academic sources preferred)
+        You are a concise and accurate fact-checker. Analyze the following text and:
+        1. First, identify all distinct factual claims in the text
+        2. For each claim, provide:
+           - The specific claim you identified
+           - A verdict: "Correct", "Incorrect", "Partially Correct", "Unclear", or "Correction"
+           - A brief, clear explanation (2-3 sentences maximum)
+           - A reliable source URL that supports your explanation (Wikipedia, government sites, academic sources preferred)
         
-        Format your response as JSON:
+        Format your response as JSON with a single key "fact_checks" containing an array:
         {
-            "verdict": "[verdict]",
-            "explanation": "[explanation]",
-            "sourceURL": "[reliable URL or null if no good source available]"
+            "fact_checks": [
+                {
+                    "claim": "[specific factual claim identified]",
+                    "verdict": "[verdict]",
+                    "explanation": "[explanation]",
+                    "sourceURL": "[reliable URL or null if no good source available]"
+                }
+            ]
         }
         
-        Claim to fact-check: "\(claim)"
+        If no factual claims are found, return an empty array.
+        
+        Text to analyze: "\(claim)"
         """
         
         do {
@@ -84,40 +94,58 @@ class GeminiService {
         do {
             let jsonResponse = try JSONDecoder().decode(GeminiJSONResponse.self, from: data)
             
-            // Convert string verdict to enum
-            let verdict = FactCheckVerdict.fromString(jsonResponse.verdict)
+            // Convert each fact check item from JSON to our model
+            let factChecks = jsonResponse.fact_checks.map { item in
+                SingleFactCheck(
+                    claim: item.claim,
+                    verdict: FactCheckVerdict.fromString(item.verdict),
+                    explanation: item.explanation,
+                    sourceURL: item.sourceURL
+                )
+            }
             
-            return FactCheckResponse(
-                verdict: verdict,
-                explanation: jsonResponse.explanation,
-                sourceURL: jsonResponse.sourceURL
-            )
+            return FactCheckResponse(factChecks: factChecks)
             
         } catch {
             print("❌ Failed to parse Gemini response: \(error)")
             print("📄 Raw response: \(cleanedText)")
             
-            // Fallback: create a response with the raw text
-            return FactCheckResponse(
+            // Fallback: create a response with the raw text as a single unclear fact check
+            let fallbackFactCheck = SingleFactCheck(
+                claim: "Unable to parse response",
                 verdict: .unclear,
                 explanation: "Analysis completed, but response format was unexpected. Raw response: \(cleanedText)",
                 sourceURL: nil
             )
+            
+            return FactCheckResponse(factChecks: [fallbackFactCheck])
         }
     }
 }
 
 // MARK: - Response Models
 
-/// Response structure from Gemini fact-checking
+/// Response structure from Gemini fact-checking (now contains multiple fact checks)
 struct FactCheckResponse {
+    let factChecks: [SingleFactCheck]
+}
+
+/// Individual fact check result
+struct SingleFactCheck {
+    let claim: String
     let verdict: FactCheckVerdict
     let explanation: String
     let sourceURL: String?
 }
 
-/// JSON structure expected from Gemini
+/// JSON structure expected from Gemini (new format with array)
 private struct GeminiJSONResponse: Codable {
+    let fact_checks: [GeminiFactCheckItem]
+}
+
+/// Individual fact check item from Gemini JSON
+private struct GeminiFactCheckItem: Codable {
+    let claim: String
     let verdict: String
     let explanation: String
     let sourceURL: String?

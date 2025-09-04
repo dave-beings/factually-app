@@ -1,5 +1,18 @@
 import Foundation
 
+/// Represents a recording session containing multiple fact checks
+struct RecordingSession: Identifiable, Codable {
+    let id: UUID
+    let timestamp: Date
+    let factChecks: [FactCheck]
+    
+    init(timestamp: Date = Date(), factChecks: [FactCheck]) {
+        self.id = UUID()
+        self.timestamp = timestamp
+        self.factChecks = factChecks
+    }
+}
+
 /// Represents a fact-checking result
 struct FactCheck: Identifiable, Codable {
     let id: UUID

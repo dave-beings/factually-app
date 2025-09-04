@@ -36,7 +36,7 @@ struct MainView: View {
                     
                     // Navigation to history
                     NavigationLink(destination: HistoryView(
-                        factChecks: viewModel.factCheckHistory,
+                        recordingSessions: viewModel.factCheckHistory,
                         onClearHistory: {
                             viewModel.clearHistory()
                         }

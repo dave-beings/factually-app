@@ -78,11 +78,6 @@ struct MainView: View {
             viewModel.startRecording()
         case .recording:
             viewModel.stopRecording()
-            
-            // Simulate transcription and fact-checking
-            Task {
-                await viewModel.processFactCheck(transcription: "Sample transcribed text for testing")
-            }
         case .processing, .error:
             break // Do nothing in these states
         }

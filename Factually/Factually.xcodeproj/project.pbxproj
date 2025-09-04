@@ -7,6 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		FEA90D152E6A487100898211 /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FEA90D142E6A487100898211 /* WidgetKit.framework */; };
+		FEA90D172E6A487100898211 /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FEA90D162E6A487100898211 /* SwiftUI.framework */; };
+		FEA90D262E6A487300898211 /* FactuallyWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = FEA90D132E6A487100898211 /* FactuallyWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		FEBA55972E6A1E4E004DAE92 /* GoogleGenerativeAI in Frameworks */ = {isa = PBXBuildFile; productRef = FEBA55962E6A1E4E004DAE92 /* GoogleGenerativeAI */; };
 /* End PBXBuildFile section */
 
@@ -25,12 +28,36 @@
 			remoteGlobalIDString = FE3E64612E6A116C0077D8D3;
 			remoteInfo = Factually;
 		};
+		FEA90D242E6A487300898211 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = FE3E645A2E6A116C0077D8D3 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = FEA90D122E6A487100898211;
+			remoteInfo = FactuallyWidgetExtension;
+		};
 /* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		FEA90D272E6A487300898211 /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				FEA90D262E6A487300898211 /* FactuallyWidgetExtension.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		FE3E64622E6A116C0077D8D3 /* Factually.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Factually.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		FE3E646F2E6A116F0077D8D3 /* FactuallyTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = FactuallyTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		FE3E64792E6A116F0077D8D3 /* FactuallyUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = FactuallyUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		FEA90D132E6A487100898211 /* FactuallyWidgetExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = FactuallyWidgetExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		FEA90D142E6A487100898211 /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
+		FEA90D162E6A487100898211 /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -41,6 +68,20 @@
 			);
 			target = FE3E64612E6A116C0077D8D3 /* Factually */;
 		};
+		FEA90D2B2E6A487300898211 /* Exceptions for "FactuallyWidget" folder in "FactuallyWidgetExtension" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = FEA90D122E6A487100898211 /* FactuallyWidgetExtension */;
+		};
+		FEA90D2D2E6A49FD00898211 /* Exceptions for "Factually" folder in "FactuallyWidgetExtension" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Intents/StartListeningIntent.swift,
+			);
+			target = FEA90D122E6A487100898211 /* FactuallyWidgetExtension */;
+		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -48,6 +89,7 @@
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
 				FE4EA4082E6A19F8001E19BA /* Exceptions for "Factually" folder in "Factually" target */,
+				FEA90D2D2E6A49FD00898211 /* Exceptions for "Factually" folder in "FactuallyWidgetExtension" target */,
 			);
 			path = Factually;
 			sourceTree = "<group>";
@@ -60,6 +102,14 @@
 		FE3E647C2E6A116F0077D8D3 /* FactuallyUITests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = FactuallyUITests;
+			sourceTree = "<group>";
+		};
+		FEA90D182E6A487100898211 /* FactuallyWidget */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				FEA90D2B2E6A487300898211 /* Exceptions for "FactuallyWidget" folder in "FactuallyWidgetExtension" target */,
+			);
+			path = FactuallyWidget;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -87,6 +137,15 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		FEA90D102E6A487100898211 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				FEA90D172E6A487100898211 /* SwiftUI.framework in Frameworks */,
+				FEA90D152E6A487100898211 /* WidgetKit.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -96,6 +155,7 @@
 				FE3E64642E6A116C0077D8D3 /* Factually */,
 				FE3E64722E6A116F0077D8D3 /* FactuallyTests */,
 				FE3E647C2E6A116F0077D8D3 /* FactuallyUITests */,
+				FEA90D182E6A487100898211 /* FactuallyWidget */,
 				FEBA55952E6A1E4E004DAE92 /* Frameworks */,
 				FE3E64632E6A116C0077D8D3 /* Products */,
 			);
@@ -107,6 +167,7 @@
 				FE3E64622E6A116C0077D8D3 /* Factually.app */,
 				FE3E646F2E6A116F0077D8D3 /* FactuallyTests.xctest */,
 				FE3E64792E6A116F0077D8D3 /* FactuallyUITests.xctest */,
+				FEA90D132E6A487100898211 /* FactuallyWidgetExtension.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -114,6 +175,8 @@
 		FEBA55952E6A1E4E004DAE92 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				FEA90D142E6A487100898211 /* WidgetKit.framework */,
+				FEA90D162E6A487100898211 /* SwiftUI.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -128,10 +191,12 @@
 				FE3E645E2E6A116C0077D8D3 /* Sources */,
 				FE3E645F2E6A116C0077D8D3 /* Frameworks */,
 				FE3E64602E6A116C0077D8D3 /* Resources */,
+				FEA90D272E6A487300898211 /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				FEA90D252E6A487300898211 /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				FE3E64642E6A116C0077D8D3 /* Factually */,
@@ -190,6 +255,28 @@
 			productReference = FE3E64792E6A116F0077D8D3 /* FactuallyUITests.xctest */;
 			productType = "com.apple.product-type.bundle.ui-testing";
 		};
+		FEA90D122E6A487100898211 /* FactuallyWidgetExtension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = FEA90D2A2E6A487300898211 /* Build configuration list for PBXNativeTarget "FactuallyWidgetExtension" */;
+			buildPhases = (
+				FEA90D0F2E6A487100898211 /* Sources */,
+				FEA90D102E6A487100898211 /* Frameworks */,
+				FEA90D112E6A487100898211 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				FEA90D182E6A487100898211 /* FactuallyWidget */,
+			);
+			name = FactuallyWidgetExtension;
+			packageProductDependencies = (
+			);
+			productName = FactuallyWidgetExtension;
+			productReference = FEA90D132E6A487100898211 /* FactuallyWidgetExtension.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -210,6 +297,9 @@
 					FE3E64782E6A116F0077D8D3 = {
 						CreatedOnToolsVersion = 16.4;
 						TestTargetID = FE3E64612E6A116C0077D8D3;
+					};
+					FEA90D122E6A487100898211 = {
+						CreatedOnToolsVersion = 16.4;
 					};
 				};
 			};
@@ -233,6 +323,7 @@
 				FE3E64612E6A116C0077D8D3 /* Factually */,
 				FE3E646E2E6A116F0077D8D3 /* FactuallyTests */,
 				FE3E64782E6A116F0077D8D3 /* FactuallyUITests */,
+				FEA90D122E6A487100898211 /* FactuallyWidgetExtension */,
 			);
 		};
 /* End PBXProject section */
@@ -253,6 +344,13 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		FE3E64772E6A116F0077D8D3 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		FEA90D112E6A487100898211 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -283,6 +381,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		FEA90D0F2E6A487100898211 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -295,6 +400,11 @@
 			isa = PBXTargetDependency;
 			target = FE3E64612E6A116C0077D8D3 /* Factually */;
 			targetProxy = FE3E647A2E6A116F0077D8D3 /* PBXContainerItemProxy */;
+		};
+		FEA90D252E6A487300898211 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = FEA90D122E6A487100898211 /* FactuallyWidgetExtension */;
+			targetProxy = FEA90D242E6A487300898211 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -544,6 +654,60 @@
 			};
 			name = Release;
 		};
+		FEA90D282E6A487300898211 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 49C69XK55M;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = FactuallyWidget/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = FactuallyWidget;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.factually.Factually.FactuallyWidget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		FEA90D292E6A487300898211 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 49C69XK55M;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = FactuallyWidget/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = FactuallyWidget;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.factually.Factually.FactuallyWidget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -579,6 +743,15 @@
 			buildConfigurations = (
 				FE3E648A2E6A116F0077D8D3 /* Debug */,
 				FE3E648B2E6A116F0077D8D3 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		FEA90D2A2E6A487300898211 /* Build configuration list for PBXNativeTarget "FactuallyWidgetExtension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				FEA90D282E6A487300898211 /* Debug */,
+				FEA90D292E6A487300898211 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

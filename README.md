@@ -29,7 +29,7 @@ We are using the MoSCoW method to prioritise our features.
 ### C - Could-Have (Future "Wow" Features)
 
 * **"Look Back" Mode:** A premium feature that uses a rolling audio buffer to capture the last 60 seconds of conversation *before* you hit the button.
-* **Siri Shortcut & Widget:** For faster, more discreet activation without opening the app.
+* ~~**Siri Shortcut & Widget:** For faster, more discreet activation without opening the app.~~ ✅ **COMPLETED!**
 * **Apple Watch App:** The ultimate discretion tool—a button on your watch face to trigger listening.
 * **"Tone" Setting:** Adjust the AI's personality from "Gentle" and "Peacemaker" to "Sassy."
 
@@ -117,6 +117,7 @@ Your Factually app now includes **ALL** the core features planned in the origina
 - ✅ **State Management**: Robust recording states with visual feedback
 - ✅ **Unified Architecture**: Clean separation of Views, ViewModels, Models, Components
 - ✅ **Siri Shortcuts Integration**: Voice activation with phrases like "Ask Factually" and "Factually, check that"
+- ✅ **Home Screen Widget**: One-tap fact-checking directly from the home screen with custom URL scheme
 
 ---
 
@@ -125,15 +126,22 @@ Your Factually app now includes **ALL** the core features planned in the origina
 The app is now production-ready with all core functionality complete. Future enhancements could include:
 
 -   [x] **Siri Shortcuts integration for hands-free activation** - ✅ **COMPLETED!**
+-   [x] **Home Screen Widget for quick access** - ✅ **COMPLETED!**
 -   [ ] Apple Watch companion app
 -   [ ] "Look Back" mode with rolling audio buffer
 -   [ ] Share functionality for fact-check results
 -   [ ] AI personality settings ("Gentle" vs "Sassy" responses)
 -   [ ] App Store submission and marketing
 
-### ✅ **Latest Update: Siri Shortcuts Integration**
+### ✅ **Latest Update: Home Screen Widget**
 
-**New Voice Commands Available:**
+**New Quick Access Features:**
+- **One-Tap Widget**: Beautiful dark-themed widget for instant fact-checking
+- **Custom URL Scheme**: `factually://start-recording` for seamless app integration
+- **Consistent Design**: Matches app's sleek aesthetic with blue microphone icon
+- **Smart State Management**: Only starts recording when app is ready
+
+**Combined with Siri Shortcuts:**
 - "Ask Factually"
 - "What does Factually say about that?"
 - "Factually, check that"
@@ -141,4 +149,4 @@ The app is now production-ready with all core functionality complete. Future enh
 - "What's the Factually accurate answer?"
 - "Check this fact with Factually"
 
-Users can now activate fact-checking hands-free using Siri, making the app even more discreet and convenient in social settings.
+Users now have **three ways** to activate fact-checking: manual app launch, Siri voice commands, and home screen widget - making the app incredibly discreet and convenient in any social setting.

@@ -94,12 +94,37 @@ class MainViewModel: ObservableObject {
             object: nil,
             queue: .main
         ) { [weak self] _ in
-            self?.handleShortcutTrigger()
+            Task { @MainActor in
+                self?.handleShortcutTrigger()
+            }
+        }
+        
+        // Also listen for URL scheme triggers
+        NotificationCenter.default.addObserver(
+            forName: NSNotification.Name("StartRecordingFromURL"),
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            Task { @MainActor in
+                self?.handleURLSchemeTrigger()
+            }
         }
     }
     
     private func handleShortcutTrigger() {
         print("🎯 Siri Shortcut triggered - starting recording")
+        
+        // Only start recording if we're not already recording or processing
+        guard recordingState == .idle else {
+            print("⚠️ Cannot start recording - current state: \(recordingState)")
+            return
+        }
+        
+        startRecording()
+    }
+    
+    private func handleURLSchemeTrigger() {
+        print("🔗 URL Scheme triggered - starting recording")
         
         // Only start recording if we're not already recording or processing
         guard recordingState == .idle else {

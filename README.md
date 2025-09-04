@@ -65,13 +65,13 @@ The overall feel should be **sleek, modern, and discreet**. A dark theme is pref
 -   [x] Initialise Git and push to GitHub.
 -   [x] Create project `README.md` with the full app plan.
 
-### Phase 2: Core UI & Organisation (Current Step)
+### ✅ Phase 2: Core UI & Organisation (Completed!)
 
--   [ ] Create the folder structure (`Views`, `Models`, etc.).
--   [ ] Build the main screen UI in SwiftUI with the central "Listen" button.
--   [ ] Build the placeholder UI for the result card.
+-   [x] Create the folder structure (`Views`, `Models`, etc.).
+-   [x] Build the main screen UI in SwiftUI with the central "Listen" button.
+-   [x] Build the placeholder UI for the result card.
 
-### Phase 3: The "Magic" - API Integration
+### Phase 3: The "Magic" - API Integration (Next Step)
 
 -   [ ] Implement microphone access and audio recording.
 -   [ ] Integrate a Speech-to-Text service.

@@ -172,7 +172,7 @@ class MainViewModel: ObservableObject {
     
     // MARK: - Test Recording Functions
     
-    func startTestRecording() {
+    func startTestRecording() async {
         print("🧪 Starting 5-second transcription test...")
         
         // Check microphone permission
@@ -209,14 +209,15 @@ class MainViewModel: ObservableObject {
             // Start audio level monitoring
             startAudioLevelMonitoring()
             
-            // Set up 5-second auto-stop using DispatchQueue
-            DispatchQueue.main.asyncAfter(deadline: .now() + 5.0) { [weak self] in
-                self?.stopTestRecording()
-            }
-            
             print("✅ Test recording started successfully")
             print("📁 Recording to: \(audioFilename.lastPathComponent)")
             print("⏱️ Will auto-stop in 5 seconds")
+            
+            // Wait for 5 seconds using modern async/await
+            try? await Task.sleep(for: .seconds(5))
+            
+            // Auto-stop after 5 seconds
+            stopTestRecording()
             
         } catch {
             print("❌ Failed to start test recording: \(error)")

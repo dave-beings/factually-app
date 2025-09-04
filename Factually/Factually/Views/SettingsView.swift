@@ -249,7 +249,9 @@ struct SettingsView: View {
             return
         }
         
-        viewModel.startTestRecording()
+        Task {
+            await viewModel.startTestRecording()
+        }
     }
 }
 

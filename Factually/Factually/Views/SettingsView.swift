@@ -2,7 +2,7 @@ import SwiftUI
 
 /// Settings view for app configuration and preferences
 struct SettingsView: View {
-    @StateObject private var viewModel = MainViewModel()
+    @ObservedObject var viewModel: MainViewModel
     
     var body: some View {
         ZStack {
@@ -261,6 +261,6 @@ struct SettingsView: View {
 
 #Preview {
     NavigationView {
-        SettingsView()
+        SettingsView(viewModel: MainViewModel())
     }
 }

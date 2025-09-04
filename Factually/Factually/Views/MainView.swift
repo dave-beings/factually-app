@@ -60,7 +60,7 @@ struct MainView: View {
             }
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    NavigationLink(destination: SettingsView()) {
+                    NavigationLink(destination: SettingsView(viewModel: viewModel)) {
                         Image(systemName: "gearshape.fill")
                             .foregroundColor(.white)
                             .font(.system(size: 18))

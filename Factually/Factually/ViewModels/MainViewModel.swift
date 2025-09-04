@@ -172,7 +172,9 @@ class MainViewModel: ObservableObject {
     
     private func startAudioLevelMonitoring() {
         audioLevelTimer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { [weak self] _ in
-            self?.updateAudioLevel()
+            Task { @MainActor in
+                self?.updateAudioLevel()
+            }
         }
     }
     

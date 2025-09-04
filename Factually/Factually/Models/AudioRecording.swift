@@ -15,7 +15,7 @@ struct AudioRecording: Identifiable {
 }
 
 /// States for audio recording
-enum RecordingState {
+enum RecordingState: Equatable {
     case idle
     case recording
     case processing

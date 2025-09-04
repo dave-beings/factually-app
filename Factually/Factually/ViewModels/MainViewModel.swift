@@ -2,6 +2,7 @@ import Foundation
 import Combine
 
 /// Main view model for the app's core functionality
+@MainActor
 class MainViewModel: ObservableObject {
     @Published var recordingState: RecordingState = .idle
     @Published var currentRecording: AudioRecording?

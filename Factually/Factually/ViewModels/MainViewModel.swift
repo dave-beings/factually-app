@@ -186,7 +186,7 @@ class MainViewModel: ObservableObject {
         request.shouldReportPartialResults = false
         
         do {
-            let (result, error) = try await withCheckedThrowingContinuation { continuation in
+            let result: SFSpeechRecognitionResult = try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<SFSpeechRecognitionResult, Error>) in
                 speechRecognizer.recognitionTask(with: request) { result, error in
                     if let error = error {
                         continuation.resume(throwing: error)
@@ -194,30 +194,20 @@ class MainViewModel: ObservableObject {
                     }
                     
                     if let result = result, result.isFinal {
-                        continuation.resume(returning: (result, nil))
+                        continuation.resume(returning: result)
                     }
                 }
             }
             
-            if let result = result {
-                let transcription = result.bestTranscription.formattedString
-                print("✅ Transcription completed: \"\(transcription)\"")
-                
-                await MainActor.run {
-                    transcribedText = transcription
-                }
-                
-                // Process the fact-check with the real transcription
-                await processFactCheck(transcription: transcription)
-                
-            } else {
-                print("❌ No transcription result")
-                await MainActor.run {
-                    transcribedText = "Could not transcribe audio"
-                    recordingState = .error("Transcription failed")
-                    isProcessing = false
-                }
+            let transcription = result.bestTranscription.formattedString
+            print("✅ Transcription completed: \"\(transcription)\"")
+            
+            await MainActor.run {
+                transcribedText = transcription
             }
+            
+            // Process the fact-check with the real transcription
+            await processFactCheck(transcription: transcription)
             
         } catch {
             print("❌ Transcription error: \(error)")

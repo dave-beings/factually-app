@@ -173,6 +173,7 @@ class MainViewModel: ObservableObject {
     // MARK: - Test Recording Functions
     
     func startTestRecording() async {
+        print("DEBUG: startTestRecording() called.")
         print("🧪 Starting 5-second transcription test...")
         
         // Check microphone permission
@@ -214,9 +215,11 @@ class MainViewModel: ObservableObject {
             print("⏱️ Will auto-stop in 5 seconds")
             
             // Wait for 5 seconds using modern async/await
+            print("DEBUG: Entering 5-second sleep.")
             print("🕐 Starting 5-second sleep...")
             do {
                 try await Task.sleep(for: .seconds(5))
+                print("DEBUG: 5-second sleep finished. Calling stopTestRecording().")
                 print("⏰ 5-second sleep completed, stopping recording...")
             } catch {
                 print("❌ Task.sleep was cancelled or interrupted: \(error)")
@@ -235,6 +238,7 @@ class MainViewModel: ObservableObject {
     }
     
     private func stopTestRecording() {
+        print("DEBUG: stopTestRecording() was successfully called.")
         print("⏹️ Stopping test recording...")
         
         // Note: No timer cleanup needed when using DispatchQueue.main.asyncAfter

@@ -22,7 +22,6 @@ class MainViewModel: ObservableObject {
     private var speechRecognizer: SFSpeechRecognizer?
     private var lastRecordingURL: URL?
     private var audioLevelTimer: Timer?
-    private var testRecordingTimer: Timer?
     
     init() {
         setupAudioSession()
@@ -210,11 +209,9 @@ class MainViewModel: ObservableObject {
             // Start audio level monitoring
             startAudioLevelMonitoring()
             
-            // Set up 5-second auto-stop timer
-            testRecordingTimer = Timer.scheduledTimer(withTimeInterval: 5.0, repeats: false) { [weak self] _ in
-                Task { @MainActor in
-                    self?.stopTestRecording()
-                }
+            // Set up 5-second auto-stop using DispatchQueue
+            DispatchQueue.main.asyncAfter(deadline: .now() + 5.0) { [weak self] in
+                self?.stopTestRecording()
             }
             
             print("✅ Test recording started successfully")
@@ -231,9 +228,7 @@ class MainViewModel: ObservableObject {
     private func stopTestRecording() {
         print("⏹️ Stopping test recording...")
         
-        // Clean up timer
-        testRecordingTimer?.invalidate()
-        testRecordingTimer = nil
+        // Note: No timer cleanup needed when using DispatchQueue.main.asyncAfter
         
         guard let recorder = audioRecorder, recorder.isRecording else {
             print("❌ No active test recording to stop")

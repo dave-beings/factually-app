@@ -11,6 +11,7 @@ class MainViewModel: ObservableObject {
     @Published var factCheckHistory: [FactCheck] = []
     @Published var isProcessing: Bool = false
     @Published var transcribedText: String = ""
+    @Published var audioLevel: Float = 0.0
     
     private var cancellables = Set<AnyCancellable>()
     private var audioRecorder: AVAudioRecorder?
@@ -18,6 +19,7 @@ class MainViewModel: ObservableObject {
     private var recordingStartTime: Date?
     private var speechRecognizer: SFSpeechRecognizer?
     private var lastRecordingURL: URL?
+    private var audioLevelTimer: Timer?
     
     init() {
         setupAudioSession()
@@ -107,10 +109,14 @@ class MainViewModel: ObservableObject {
         do {
             // Create and start the audio recorder
             audioRecorder = try AVAudioRecorder(url: audioFilename, settings: settings)
+            audioRecorder?.isMeteringEnabled = true
             audioRecorder?.record()
             
             recordingStartTime = Date()
             recordingState = .recording
+            
+            // Start audio level monitoring
+            startAudioLevelMonitoring()
             
             print("✅ Recording started successfully")
             print("📁 Recording to: \(audioFilename.lastPathComponent)")
@@ -154,9 +160,41 @@ class MainViewModel: ObservableObject {
             recordingState = .error("No audio file to transcribe")
         }
         
+        // Stop audio level monitoring
+        stopAudioLevelMonitoring()
+        
         // Clean up
         audioRecorder = nil
         recordingStartTime = nil
+    }
+    
+    // MARK: - Audio Level Monitoring
+    
+    private func startAudioLevelMonitoring() {
+        audioLevelTimer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { [weak self] _ in
+            self?.updateAudioLevel()
+        }
+    }
+    
+    private func stopAudioLevelMonitoring() {
+        audioLevelTimer?.invalidate()
+        audioLevelTimer = nil
+        audioLevel = 0.0
+    }
+    
+    private func updateAudioLevel() {
+        guard let recorder = audioRecorder, recorder.isRecording else {
+            audioLevel = 0.0
+            return
+        }
+        
+        recorder.updateMeters()
+        let averagePower = recorder.averagePower(forChannel: 0)
+        
+        // Convert decibel value to a 0-1 range
+        // averagePower ranges from -160 (silence) to 0 (max volume)
+        let normalizedLevel = max(0.0, (averagePower + 60.0) / 60.0)
+        audioLevel = Float(normalizedLevel)
     }
     
     // MARK: - Speech Recognition Functions

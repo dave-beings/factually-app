@@ -30,6 +30,8 @@
 	<string>This app needs access to your microphone to check facts from your conversation.</string>
 	<key>NSSpeechRecognitionUsageDescription</key>
 	<string>This app needs speech recognition to convert your spoken words into text for fact-checking.</string>
+	<key>NSSiriUsageDescription</key>
+	<string>Use Siri to quickly start fact-checking by saying phrases like "Fact Check That" or "Start Fact Check".</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>

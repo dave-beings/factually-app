@@ -28,6 +28,11 @@ class MainViewModel: ObservableObject {
         setupSpeechRecognizer()
         requestMicrophonePermission()
         requestSpeechRecognitionPermission()
+        setupShortcutListener()
+    }
+    
+    deinit {
+        NotificationCenter.default.removeObserver(self)
     }
     
     // MARK: - Audio Setup
@@ -81,6 +86,28 @@ class MainViewModel: ObservableObject {
                 }
             }
         }
+    }
+    
+    private func setupShortcutListener() {
+        NotificationCenter.default.addObserver(
+            forName: .startListeningIntentTriggered,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            self?.handleShortcutTrigger()
+        }
+    }
+    
+    private func handleShortcutTrigger() {
+        print("🎯 Siri Shortcut triggered - starting recording")
+        
+        // Only start recording if we're not already recording or processing
+        guard recordingState == .idle else {
+            print("⚠️ Cannot start recording - current state: \(recordingState)")
+            return
+        }
+        
+        startRecording()
     }
     
     // MARK: - Recording Functions

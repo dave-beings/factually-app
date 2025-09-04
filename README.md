@@ -116,6 +116,7 @@ Your Factually app now includes **ALL** the core features planned in the origina
 - ✅ **Dark Theme UI**: Sleek, discreet interface perfect for social settings
 - ✅ **State Management**: Robust recording states with visual feedback
 - ✅ **Unified Architecture**: Clean separation of Views, ViewModels, Models, Components
+- ✅ **Siri Shortcuts Integration**: Voice activation with phrases like "Ask Factually" and "Factually, check that"
 
 ---
 
@@ -123,9 +124,21 @@ Your Factually app now includes **ALL** the core features planned in the origina
 
 The app is now production-ready with all core functionality complete. Future enhancements could include:
 
--   [ ] Siri Shortcuts integration for hands-free activation
+-   [x] **Siri Shortcuts integration for hands-free activation** - ✅ **COMPLETED!**
 -   [ ] Apple Watch companion app
 -   [ ] "Look Back" mode with rolling audio buffer
 -   [ ] Share functionality for fact-check results
 -   [ ] AI personality settings ("Gentle" vs "Sassy" responses)
 -   [ ] App Store submission and marketing
+
+### ✅ **Latest Update: Siri Shortcuts Integration**
+
+**New Voice Commands Available:**
+- "Ask Factually"
+- "What does Factually say about that?"
+- "Factually, check that"
+- "Is that Factually accurate?"
+- "What's the Factually accurate answer?"
+- "Check this fact with Factually"
+
+Users can now activate fact-checking hands-free using Siri, making the app even more discreet and convenient in social settings.

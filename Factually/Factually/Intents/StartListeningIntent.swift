@@ -1,0 +1,28 @@
+//
+//  StartListeningIntent.swift
+//  Factually
+//
+//  Created by Dave Johnstone on 04/09/2025.
+//
+
+import Foundation
+import AppIntents
+
+struct StartListeningIntent: AppIntent {
+    static var title: LocalizedStringResource = "Start Fact Check"
+    static var description = IntentDescription("Start recording audio for fact checking")
+    
+    static var openAppWhenRun: Bool = true
+    
+    func perform() async throws -> some IntentResult {
+        // Post a notification that the intent was triggered
+        NotificationCenter.default.post(name: .startListeningIntentTriggered, object: nil)
+        
+        return .result()
+    }
+}
+
+// MARK: - Notification Extension
+extension Notification.Name {
+    static let startListeningIntentTriggered = Notification.Name("startListeningIntentTriggered")
+}

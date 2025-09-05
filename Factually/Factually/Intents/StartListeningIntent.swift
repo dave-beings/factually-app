@@ -17,13 +17,8 @@ struct StartListeningIntent: AppIntent {
     func perform() async throws -> some IntentResult {
         // Post a notification that the intent was triggered
         // The main app's MainViewModel is already listening for this notification
-        NotificationCenter.default.post(name: .startListeningIntentTriggered, object: nil)
+        NotificationCenter.default.post(name: Constants.startRecordingNotification, object: nil)
         
         return .result()
     }
-}
-
-// MARK: - Notification Extension
-extension Notification.Name {
-    static let startListeningIntentTriggered = Notification.Name("startListeningIntentTriggered")
 }

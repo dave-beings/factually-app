@@ -28,7 +28,7 @@ struct FactuallyApp: App {
         if url.host == "start-recording" {
             // Post notification to trigger recording
             NotificationCenter.default.post(
-                name: NSNotification.Name("StartRecordingFromURL"), 
+                name: Constants.startRecordingNotification, 
                 object: nil
             )
         }

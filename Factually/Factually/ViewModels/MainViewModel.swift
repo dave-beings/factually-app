@@ -6,10 +6,10 @@ import UserNotifications
 
 /// Circular audio buffer for Look Back feature
 class CircularAudioBuffer {
-    private let maxDuration: TimeInterval = 60.0 // 60 seconds
+    private let maxDuration: TimeInterval = Constants.lookBackMaxDuration
     private var audioFiles: [(url: URL, timestamp: Date)] = []
     private var currentFileIndex: Int = 0
-    private let chunkDuration: TimeInterval = 5.0
+    private let chunkDuration: TimeInterval = Constants.lookBackChunkDuration
     
     private let documentsPath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
     
@@ -29,7 +29,7 @@ class CircularAudioBuffer {
         
         // Add the new file to the buffer
         audioFiles.append((url: fileURL, timestamp: timestamp))
-        currentFileIndex = (currentFileIndex + 1) % 1000 // Large number to avoid collisions
+        currentFileIndex = (currentFileIndex + 1) % Constants.maxFileIndex // Large number to avoid collisions
         
         return fileURL
     }
@@ -38,8 +38,8 @@ class CircularAudioBuffer {
         // Sort array by timestamp to ensure chronological order
         audioFiles.sort { $0.timestamp < $1.timestamp }
         
-        // If we have more than 12 chunks (60 seconds / 5 seconds per chunk), remove the oldest
-        while audioFiles.count > 12 {
+        // If we have more than the maximum chunks, remove the oldest
+        while audioFiles.count > Constants.lookBackMaxChunks {
             let oldestFile = audioFiles.removeFirst()
             
             // Delete the file from disk
@@ -63,7 +63,7 @@ class CircularAudioBuffer {
         
         // Ensure the most recent chunk is properly finalized before combining
         print("⏸️ Finalizing most recent chunk before combination...")
-        try? await Task.sleep(for: .milliseconds(500))
+        try? await Task.sleep(for: .milliseconds(Constants.bufferFinalizationDelay))
         
         // Sort files by timestamp to ensure proper chronological order
         let sortedFiles = audioFiles.sorted { $0.timestamp < $1.timestamp }
@@ -269,42 +269,20 @@ class MainViewModel: ObservableObject {
     }
     
     private func setupShortcutListener() {
+        // Listen for unified start recording notification
         NotificationCenter.default.addObserver(
-            forName: .startListeningIntentTriggered,
+            forName: Constants.startRecordingNotification,
             object: nil,
             queue: .main
         ) { [weak self] _ in
             Task { @MainActor in
-                self?.handleShortcutTrigger()
-            }
-        }
-        
-        // Also listen for URL scheme triggers
-        NotificationCenter.default.addObserver(
-            forName: NSNotification.Name("StartRecordingFromURL"),
-            object: nil,
-            queue: .main
-        ) { [weak self] _ in
-            Task { @MainActor in
-                self?.handleURLSchemeTrigger()
+                self?.handleStartRecordingTrigger()
             }
         }
     }
     
-    private func handleShortcutTrigger() {
-        print("🎯 Siri Shortcut triggered - starting recording")
-        
-        // Only start recording if we're not already recording or processing
-        guard recordingState == .idle else {
-            print("⚠️ Cannot start recording - current state: \(recordingState)")
-            return
-        }
-        
-        startRecording()
-    }
-    
-    private func handleURLSchemeTrigger() {
-        print("🔗 URL Scheme triggered - starting recording")
+    private func handleStartRecordingTrigger() {
+        print("🎯 Start recording triggered - starting recording")
         
         // Only start recording if we're not already recording or processing
         guard recordingState == .idle else {
@@ -359,8 +337,8 @@ class MainViewModel: ObservableObject {
         // Configure recording settings
         let settings = [
             AVFormatIDKey: Int(kAudioFormatMPEG4AAC),
-            AVSampleRateKey: 44100,
-            AVNumberOfChannelsKey: 1,
+            AVSampleRateKey: Constants.audioSampleRate,
+            AVNumberOfChannelsKey: Constants.audioChannels,
             AVEncoderAudioQualityKey: AVAudioQuality.high.rawValue
         ]
         
@@ -508,8 +486,8 @@ class MainViewModel: ObservableObject {
             await startNextLookBackChunk()
         }
         
-        // Set up timer to switch to new chunks every 5 seconds
-        lookBackTimer = Timer.scheduledTimer(withTimeInterval: 5.0, repeats: true) { [weak self] _ in
+        // Set up timer to switch to new chunks
+        lookBackTimer = Timer.scheduledTimer(withTimeInterval: Constants.lookBackChunkDuration, repeats: true) { [weak self] _ in
             Task { @MainActor in
                 await self?.startNextLookBackChunk()
             }
@@ -531,7 +509,7 @@ class MainViewModel: ObservableObject {
             
             // Add a small delay to ensure the final chunk is properly written
             Task {
-                try? await Task.sleep(for: .milliseconds(300))
+                try? await Task.sleep(for: .milliseconds(Constants.audioFinalizationDelay))
                 await MainActor.run {
                     print("✅ Final Look Back chunk finalized")
                 }
@@ -565,7 +543,7 @@ class MainViewModel: ObservableObject {
             
             // Wait for the file to be properly finalized before proceeding
             // This prevents "unplayable" errors when accessing the chunk files
-            try? await Task.sleep(for: .milliseconds(300))
+            try? await Task.sleep(for: .milliseconds(Constants.audioFinalizationDelay))
             print("✅ Previous chunk finalized")
         }
         
@@ -576,8 +554,8 @@ class MainViewModel: ObservableObject {
         // Configure recording settings
         let settings = [
             AVFormatIDKey: Int(kAudioFormatMPEG4AAC),
-            AVSampleRateKey: 44100,
-            AVNumberOfChannelsKey: 1,
+            AVSampleRateKey: Constants.audioSampleRate,
+            AVNumberOfChannelsKey: Constants.audioChannels,
             AVEncoderAudioQualityKey: AVAudioQuality.high.rawValue
         ]
         
@@ -626,8 +604,8 @@ class MainViewModel: ObservableObject {
                 // Set this as the last recording URL for transcription
                 lastRecordingURL = combinedAudioURL
                 
-                // Calculate duration (approximately 60 seconds or less if buffer isn't full)
-                let duration = lookBackStartTime != nil ? Date().timeIntervalSince(lookBackStartTime!) : 60.0
+                // Calculate duration (approximately max duration or less if buffer isn't full)
+                let duration = lookBackStartTime != nil ? Date().timeIntervalSince(lookBackStartTime!) : Constants.lookBackMaxDuration
                 print("⏱️ Look Back buffer duration: \(String(format: "%.1f", duration)) seconds")
                 
                 // Create AudioRecording object
@@ -644,7 +622,7 @@ class MainViewModel: ObservableObject {
     // MARK: - Audio Level Monitoring
     
     private func startAudioLevelMonitoring() {
-        audioLevelTimer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { [weak self] _ in
+        audioLevelTimer = Timer.scheduledTimer(withTimeInterval: Constants.audioLevelUpdateInterval, repeats: true) { [weak self] _ in
             Task { @MainActor in
                 self?.updateAudioLevel()
             }
@@ -667,8 +645,8 @@ class MainViewModel: ObservableObject {
         let averagePower = recorder.averagePower(forChannel: 0)
         
         // Convert decibel value to a 0-1 range
-        // averagePower ranges from -160 (silence) to 0 (max volume)
-        let normalizedLevel = max(0.0, (averagePower + 60.0) / 60.0)
+        // averagePower ranges from silence to 0 (max volume)
+        let normalizedLevel = max(0.0, (averagePower + Constants.audioLevelDecibelRange) / Constants.audioLevelDecibelRange)
         audioLevel = Float(normalizedLevel)
     }
     
@@ -764,7 +742,7 @@ class MainViewModel: ObservableObject {
                     
                     // Reset to idle after a brief delay so user can see the error message
                     Task {
-                        try? await Task.sleep(for: .seconds(3))
+                        try? await Task.sleep(for: .seconds(Constants.errorDisplayDuration))
                         await MainActor.run {
                             if case .error = recordingState {
                                 recordingState = .idle
@@ -900,7 +878,7 @@ class MainViewModel: ObservableObject {
             content.sound = .default
             
             // Create immediate trigger (deliver now)
-            let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 0.1, repeats: false)
+            let trigger = UNTimeIntervalNotificationTrigger(timeInterval: Constants.notificationTriggerDelay, repeats: false)
             
             // Create notification request
             let request = UNNotificationRequest(

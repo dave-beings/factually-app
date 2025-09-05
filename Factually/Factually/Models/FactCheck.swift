@@ -1,7 +1,7 @@
 import Foundation
 
 /// Represents a recording session containing multiple fact checks
-struct RecordingSession: Identifiable, Codable {
+struct RecordingSession: Identifiable, Codable, Equatable {
     let id: UUID
     let timestamp: Date
     let factChecks: [FactCheck]
@@ -14,7 +14,7 @@ struct RecordingSession: Identifiable, Codable {
 }
 
 /// Represents a fact-checking result
-struct FactCheck: Identifiable, Codable {
+struct FactCheck: Identifiable, Codable, Equatable {
     let id: UUID
     let originalClaim: String
     let verdict: FactCheckVerdict

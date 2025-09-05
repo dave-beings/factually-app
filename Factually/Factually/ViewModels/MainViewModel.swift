@@ -193,6 +193,7 @@ class MainViewModel: ObservableObject {
     @Published var recordingState: RecordingState = .idle
     @Published var currentRecording: AudioRecording?
     @Published var factCheckHistory: [RecordingSession] = []
+    @Published var latestSession: RecordingSession?
     @Published var isProcessing: Bool = false
     @Published var transcribedText: String = ""
     @Published var audioLevel: Float = 0.0
@@ -756,11 +757,38 @@ class MainViewModel: ObservableObject {
                     recordingState = .idle
                     isTestRecording = false
                 } else {
-                    // For regular mode: set error state
-                    recordingState = .error("Transcription failed")
+                    // For regular mode: show user-friendly error message and reset to idle
+                    let userFriendlyMessage = getUserFriendlyErrorMessage(for: error)
+                    recordingState = .error(userFriendlyMessage)
                     isProcessing = false
+                    
+                    // Reset to idle after a brief delay so user can see the error message
+                    Task {
+                        try? await Task.sleep(for: .seconds(3))
+                        await MainActor.run {
+                            if case .error = recordingState {
+                                recordingState = .idle
+                            }
+                        }
+                    }
                 }
             }
+        }
+    }
+    
+    private func getUserFriendlyErrorMessage(for error: Error) -> String {
+        let errorDescription = error.localizedDescription.lowercased()
+        
+        if errorDescription.contains("no speech") || errorDescription.contains("speech not detected") {
+            return "No speech detected. Please try speaking more clearly."
+        } else if errorDescription.contains("network") || errorDescription.contains("internet") {
+            return "Network error. Please check your connection and try again."
+        } else if errorDescription.contains("authorization") || errorDescription.contains("permission") {
+            return "Microphone permission required. Please enable in Settings."
+        } else if errorDescription.contains("audio") || errorDescription.contains("recording") {
+            return "Audio recording issue. Please try again."
+        } else {
+            return "Transcription failed. Please try again."
         }
     }
     
@@ -812,6 +840,7 @@ class MainViewModel: ObservableObject {
                 // Create a new recording session with all the fact checks
                 let recordingSession = RecordingSession(factChecks: newFactChecks)
                 self.factCheckHistory.insert(recordingSession, at: 0)
+                self.latestSession = recordingSession
                 self.isProcessing = false
                 self.recordingState = .completed
                 
@@ -835,6 +864,7 @@ class MainViewModel: ObservableObject {
                 // Create a recording session with the fallback fact check
                 let fallbackSession = RecordingSession(factChecks: [fallbackFactCheck])
                 self.factCheckHistory.insert(fallbackSession, at: 0)
+                self.latestSession = fallbackSession
                 self.isProcessing = false
                 self.recordingState = .completed
                 

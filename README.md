@@ -120,6 +120,9 @@ Your Factually app now includes **ALL** the core features planned in the origina
 - ✅ **Home Screen Widget**: One-tap fact-checking directly from the home screen with custom URL scheme
 - ✅ **"Look Back" Mode**: Revolutionary 60-second rolling audio buffer for instant fact-checking of past conversation
 - ✅ **Local Notifications**: Smart notification system that delivers fact-check results instantly, even when app is backgrounded
+- ✅ **Unified Results View**: Dedicated sheet presentation for fact-check results with automatic display and clean dismissal
+- ✅ **State-Aware UI**: Dynamic interface that changes based on Look Back mode with glowing blue ring animation
+- ✅ **Enhanced Error Recovery**: Smart transcription error handling with user-friendly messages and automatic state reset
 
 ---
 
@@ -191,6 +194,29 @@ The app is now production-ready with all core functionality complete. Future enh
 
 Users now have **four ways** to activate fact-checking: manual app launch, Siri voice commands, home screen widget, and Look Back mode - making the app incredibly powerful and convenient in any social setting. With background operation and instant notifications, you never miss important fact-check results.
 
+### ✅ **Latest Update: UI Polish & Results Enhancement**
+
+**Unified Results View:**
+- **Dedicated Results Sheet**: Beautiful, dedicated view for displaying fact-check results
+- **Automatic Presentation**: Results appear instantly after processing completes in a modal sheet
+- **Session-Based Display**: Shows all fact checks from a single recording session together
+- **Clean Navigation**: "Done" button for easy dismissal with proper state cleanup
+- **Scrollable Interface**: Handles any number of fact checks with smooth scrolling
+
+**State-Aware UI Improvements:**
+- **Look Back Visual Feedback**: Glowing blue ring animation around microphone when Look Back mode is active
+- **Dynamic Title Display**: Interface changes between "Factually 🧐" and "Look Back Active" based on mode
+- **Smart Status Text**: Context-aware messages that adapt to current mode and state
+- **Stable Button Position**: Three-section layout ensures microphone button never moves regardless of text changes
+- **Professional Animation**: Smooth pulsing gradient ring with 2-second breathing effect
+
+**Enhanced Error Handling:**
+- **Smart Error Recovery**: Transcription errors no longer leave app in stuck state
+- **User-Friendly Messages**: Technical errors converted to actionable guidance
+- **Auto-Reset Mechanism**: Errors display for 3 seconds then automatically reset to idle state
+- **Context-Aware Feedback**: Different messages for network issues, permissions, audio problems, etc.
+- **Seamless Retry Flow**: Users can immediately try again after any error condition
+
 **Technical Improvements:**
 - ✅ Fixed race condition when launching via Siri shortcuts
 - ✅ Moved audio session setup into `startRecording()` for guaranteed initialization
@@ -204,3 +230,8 @@ Users now have **four ways** to activate fact-checking: manual app launch, Siri 
 - ✅ **Complete background capability** with proper iOS background modes configuration
 - ✅ **Reliable circular buffer management** with strict 60-second limit and immediate cleanup
 - ✅ **Chronological audio composition** ensuring perfect sequence and timing
+- ✅ **Unified Results Architecture**: Clean separation with ResultsView.swift and sheet presentation
+- ✅ **Equatable Protocol Conformance**: Proper SwiftUI state management for recording sessions
+- ✅ **Three-Section Layout System**: Stable UI layout preventing button movement issues
+- ✅ **Smart Error Message Mapping**: Context-aware error handling with user-friendly feedback
+- ✅ **Automatic State Recovery**: Transcription errors auto-reset after 3-second display period

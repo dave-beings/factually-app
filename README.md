@@ -192,7 +192,14 @@ The app is now production-ready with all core functionality complete. Future enh
 - "What's the Factually accurate answer?"
 - "Check this fact with Factually"
 
-Users now have **four ways** to activate fact-checking: manual app launch, Siri voice commands, home screen widget, and Look Back mode - making the app incredibly powerful and convenient in any social setting. With background operation and instant notifications, you never miss important fact-check results.
+**🎯 NEW: Background Siri Shortcut Operation:**
+- ✅ **No App Interruption**: Siri shortcuts now run entirely in background without opening the app
+- ✅ **Seamless Integration**: Works perfectly with Look Back mode - processes the 60-second buffer instantly
+- ✅ **Smart Architecture**: Uses existing notification system to communicate with main app's ViewModel
+- ✅ **Instant Results**: Get fact-check notifications without any visual app disruption
+- ✅ **Universal Compatibility**: Works from any screen, any app, even when phone is locked
+
+Users now have **four ways** to activate fact-checking: manual app launch, Siri voice commands, home screen widget, and Look Back mode - making the app incredibly powerful and convenient in any social setting. With true background operation and instant notifications, you never miss important fact-check results.
 
 ### ✅ **Latest Update: UI Polish & Results Enhancement**
 
@@ -235,3 +242,4 @@ Users now have **four ways** to activate fact-checking: manual app launch, Siri 
 - ✅ **Three-Section Layout System**: Stable UI layout preventing button movement issues
 - ✅ **Smart Error Message Mapping**: Context-aware error handling with user-friendly feedback
 - ✅ **Automatic State Recovery**: Transcription errors auto-reset after 3-second display period
+- ✅ **Background Siri Shortcut Operation**: Siri shortcuts now run entirely in background without opening app

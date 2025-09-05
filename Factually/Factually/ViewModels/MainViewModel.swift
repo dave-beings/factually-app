@@ -335,7 +335,7 @@ class MainViewModel: ObservableObject {
         lastRecordingURL = audioFilename
         
         // Configure recording settings
-        let settings = [
+        let settings: [String: Any] = [
             AVFormatIDKey: Int(kAudioFormatMPEG4AAC),
             AVSampleRateKey: Constants.audioSampleRate,
             AVNumberOfChannelsKey: Constants.audioChannels,
@@ -552,7 +552,7 @@ class MainViewModel: ObservableObject {
         let chunkURL = buffer.getNextFileURL()
         
         // Configure recording settings
-        let settings = [
+        let settings: [String: Any] = [
             AVFormatIDKey: Int(kAudioFormatMPEG4AAC),
             AVSampleRateKey: Constants.audioSampleRate,
             AVNumberOfChannelsKey: Constants.audioChannels,

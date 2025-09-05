@@ -81,5 +81,11 @@
 			</array>
 		</dict>
 	</array>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>audio</string>
+	</array>
+	<key>NSUserNotificationsUsageDescription</key>
+	<string>This app needs to send notifications to alert you when fact-checking is complete, especially when using the Look Back feature.</string>
 </dict>
 </plist>

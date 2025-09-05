@@ -2,6 +2,7 @@ import Foundation
 import Combine
 import AVFoundation
 import Speech
+import UserNotifications
 
 /// Circular audio buffer for Look Back feature
 class CircularAudioBuffer {
@@ -26,9 +27,6 @@ class CircularAudioBuffer {
         let filename = "lookback_chunk_\(currentFileIndex)_\(timestamp.timeIntervalSince1970).m4a"
         let fileURL = documentsPath.appendingPathComponent(filename)
         
-        // Remove files older than 60 seconds
-        pruneOldFiles(currentTime: timestamp)
-        
         // Add the new file to the buffer
         audioFiles.append((url: fileURL, timestamp: timestamp))
         currentFileIndex = (currentFileIndex + 1) % 1000 // Large number to avoid collisions
@@ -36,18 +34,26 @@ class CircularAudioBuffer {
         return fileURL
     }
     
-    private func pruneOldFiles(currentTime: Date) {
-        let cutoffTime = currentTime.addingTimeInterval(-maxDuration)
+    func enforceChunkLimit() {
+        // Sort array by timestamp to ensure chronological order
+        audioFiles.sort { $0.timestamp < $1.timestamp }
         
-        // Remove files older than 60 seconds
-        let filesToRemove = audioFiles.filter { $0.timestamp < cutoffTime }
-        for fileInfo in filesToRemove {
-            try? FileManager.default.removeItem(at: fileInfo.url)
+        // If we have more than 12 chunks (60 seconds / 5 seconds per chunk), remove the oldest
+        while audioFiles.count > 12 {
+            let oldestFile = audioFiles.removeFirst()
+            
+            // Delete the file from disk
+            do {
+                try FileManager.default.removeItem(at: oldestFile.url)
+                print("🗑️ Removed old chunk: \(oldestFile.url.lastPathComponent)")
+            } catch {
+                print("⚠️ Failed to delete old chunk \(oldestFile.url.lastPathComponent): \(error)")
+            }
         }
         
-        // Keep only files within the 60-second window
-        audioFiles = audioFiles.filter { $0.timestamp >= cutoffTime }
+        print("📊 Buffer now contains \(audioFiles.count) chunks")
     }
+    
     
     func combineBufferToFile() async -> URL? {
         guard !audioFiles.isEmpty else { 
@@ -55,10 +61,14 @@ class CircularAudioBuffer {
             return nil 
         }
         
-        // Sort files by timestamp to ensure proper order
+        // Ensure the most recent chunk is properly finalized before combining
+        print("⏸️ Finalizing most recent chunk before combination...")
+        try? await Task.sleep(for: .milliseconds(500))
+        
+        // Sort files by timestamp to ensure proper chronological order
         let sortedFiles = audioFiles.sorted { $0.timestamp < $1.timestamp }
         
-        print("🔄 Combining \(sortedFiles.count) audio chunks...")
+        print("🔄 Combining \(sortedFiles.count) audio chunks in chronological order...")
         
         let finalURL = documentsPath.appendingPathComponent("lookback_combined_\(Date().timeIntervalSince1970).m4a")
         
@@ -446,12 +456,17 @@ class MainViewModel: ObservableObject {
         audioRecorder = nil
         recordingStartTime = nil
         
-        // Reset audio session to allow other apps to use audio
-        do {
-            try audioSession.setActive(false, options: .notifyOthersOnDeactivation)
-            print("✅ Audio session deactivated successfully")
-        } catch {
-            print("⚠️ Failed to deactivate audio session: \(error)")
+        // Only deactivate audio session if Look Back mode is not active
+        // This prevents interrupting the continuous background recording
+        if !isLookBackEnabled || lookBackRecorder == nil {
+            do {
+                try audioSession.setActive(false, options: .notifyOthersOnDeactivation)
+                print("✅ Audio session deactivated successfully")
+            } catch {
+                print("⚠️ Failed to deactivate audio session: \(error)")
+            }
+        } else {
+            print("ℹ️ Keeping audio session active for Look Back mode")
         }
     }
     
@@ -460,16 +475,21 @@ class MainViewModel: ObservableObject {
     func startLookBack() {
         print("🔄 Starting Look Back continuous recording...")
         
-        // Setup audio session if not already active
-        if !audioSession.isOtherAudioPlaying && audioSession.category != .playAndRecord {
-            do {
-                try audioSession.setCategory(.playAndRecord, mode: .default)
-                try audioSession.setActive(true)
-                print("✅ Audio session configured for Look Back")
-            } catch {
-                print("❌ Failed to set up audio session for Look Back: \(error)")
-                return
-            }
+        // Configure audio session for background recording
+        do {
+            // Configure for background audio recording with proper options
+            try audioSession.setCategory(
+                .playAndRecord,
+                mode: .default,
+                options: [.allowBluetooth, .defaultToSpeaker, .mixWithOthers]
+            )
+            
+            // Activate the session - this is critical for background operation
+            try audioSession.setActive(true, options: [])
+            print("✅ Audio session configured for Look Back with background support")
+        } catch {
+            print("❌ Failed to set up audio session for Look Back: \(error)")
+            return
         }
         
         // Check microphone permission
@@ -523,6 +543,16 @@ class MainViewModel: ObservableObject {
         lookBackStartTime = nil
         lookBackBuffer = nil
         
+        // Deactivate audio session only if we're not actively recording
+        if recordingState == .idle {
+            do {
+                try audioSession.setActive(false, options: .notifyOthersOnDeactivation)
+                print("✅ Audio session deactivated after Look Back stop")
+            } catch {
+                print("⚠️ Failed to deactivate audio session after Look Back stop: \(error)")
+            }
+        }
+        
         print("✅ Look Back recording stopped")
     }
     
@@ -557,6 +587,9 @@ class MainViewModel: ObservableObject {
             lookBackRecorder?.record()
             
             print("📁 Recording Look Back chunk: \(chunkURL.lastPathComponent)")
+            
+            // After successfully starting the new chunk, enforce the 12-chunk limit
+            buffer.enforceChunkLimit()
             
         } catch {
             print("❌ Failed to start Look Back chunk recording: \(error)")
@@ -781,6 +814,9 @@ class MainViewModel: ObservableObject {
                 self.factCheckHistory.insert(recordingSession, at: 0)
                 self.isProcessing = false
                 self.recordingState = .completed
+                
+                // Show notification for the fact-check result
+                self.showFactCheckNotification(for: recordingSession)
             }
             
         } catch {
@@ -801,6 +837,9 @@ class MainViewModel: ObservableObject {
                 self.factCheckHistory.insert(fallbackSession, at: 0)
                 self.isProcessing = false
                 self.recordingState = .completed
+                
+                // Show notification for the fallback fact-check result
+                self.showFactCheckNotification(for: fallbackSession)
             }
         }
     }
@@ -809,5 +848,69 @@ class MainViewModel: ObservableObject {
     
     func clearHistory() {
         factCheckHistory.removeAll()
+    }
+    
+    // MARK: - Notification Functions
+    
+    func showFactCheckNotification(for session: RecordingSession) {
+        // Check if notifications are authorized
+        UNUserNotificationCenter.current().getNotificationSettings { settings in
+            guard settings.authorizationStatus == .authorized else {
+                print("❌ Notifications not authorized")
+                return
+            }
+            
+            // Find the most relevant fact-check from the session
+            let relevantFactCheck = self.getMostRelevantFactCheck(from: session)
+            
+            // Create notification content
+            let content = UNMutableNotificationContent()
+            content.title = relevantFactCheck.verdict.rawValue
+            content.body = relevantFactCheck.explanation
+            content.sound = .default
+            
+            // Create immediate trigger (deliver now)
+            let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 0.1, repeats: false)
+            
+            // Create notification request
+            let request = UNNotificationRequest(
+                identifier: "factcheck_\(session.id.uuidString)",
+                content: content,
+                trigger: trigger
+            )
+            
+            // Schedule the notification
+            UNUserNotificationCenter.current().add(request) { error in
+                if let error = error {
+                    print("❌ Failed to schedule notification: \(error.localizedDescription)")
+                } else {
+                    print("✅ Fact-check notification scheduled: \(relevantFactCheck.verdict.rawValue)")
+                }
+            }
+        }
+    }
+    
+    private func getMostRelevantFactCheck(from session: RecordingSession) -> FactCheck {
+        // Priority order for selecting the most relevant fact-check:
+        // 1. Incorrect (highest priority - user needs to know)
+        // 2. Partially Correct (important correction)
+        // 3. Correction (factual correction)
+        // 4. Correct (confirmation)
+        // 5. Unclear (lowest priority)
+        
+        let priorityOrder: [FactCheckVerdict] = [.incorrect, .partiallyCorrect, .correction, .correct, .unclear]
+        
+        for verdict in priorityOrder {
+            if let factCheck = session.factChecks.first(where: { $0.verdict == verdict }) {
+                return factCheck
+            }
+        }
+        
+        // Fallback to the first fact-check if no priority match
+        return session.factChecks.first ?? FactCheck(
+            originalClaim: "No claims found",
+            verdict: .unclear,
+            explanation: "No fact-checks were found in this session."
+        )
     }
 }

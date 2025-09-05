@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import UserNotifications
 
 @main
 struct FactuallyApp: App {
@@ -14,6 +15,9 @@ struct FactuallyApp: App {
             ContentView()
                 .onOpenURL { url in
                     handleIncomingURL(url)
+                }
+                .onAppear {
+                    requestNotificationPermission()
                 }
         }
     }
@@ -27,6 +31,20 @@ struct FactuallyApp: App {
                 name: NSNotification.Name("StartRecordingFromURL"), 
                 object: nil
             )
+        }
+    }
+    
+    private func requestNotificationPermission() {
+        UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound, .badge]) { granted, error in
+            DispatchQueue.main.async {
+                if granted {
+                    print("✅ Notification permission granted")
+                } else if let error = error {
+                    print("❌ Notification permission denied: \(error.localizedDescription)")
+                } else {
+                    print("❌ Notification permission denied")
+                }
+            }
         }
     }
 }
